@@ -14,16 +14,17 @@ class NotificationController extends BaseController
     }
 
     private function idEmp(): int { return (int) session()->get('id_Emp'); }
+    private function idPfl(): int { return (int) session()->get('id_Pfl'); }
 
-    private function view(string $vue, array $data = [])
+    private function profileView(string $page, array $data = []): string
     {
-        $prefix = match((int) session()->get('id_Pfl')) {
-            1 => 'RH',
-            2 => 'chef',
-            3 => 'employe',
+        $folder = match ($this->idPfl()) {
+            1       => 'rh',
+            2       => 'chef',
+            3       => 'employe',
             default => 'employe',
         };
-        return view($prefix . '/notifications/index', $data);
+        return view("{$folder}/notifications/{$page}", $data);
     }
 
     // ══════════════════════════════════════════════════════════
@@ -42,7 +43,7 @@ class NotificationController extends BaseController
 
         $nonLues = count(array_filter($notifications, fn($n) => $n['Lu_Notif'] == 0));
 
-        return $this->view('index', [
+        return $this->profileView('index', [
             'title'         => 'Notifications',
             'notifications' => $notifications,
             'nonLues'       => $nonLues,

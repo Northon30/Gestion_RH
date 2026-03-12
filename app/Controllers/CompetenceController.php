@@ -19,6 +19,17 @@ class CompetenceController extends BaseController
     private function idEmp(): int { return (int) session()->get('id_Emp'); }
     private function idPfl(): int { return (int) session()->get('id_Pfl'); }
 
+    private function profileView(string $page, array $data = []): string
+    {
+        $folder = match ($this->idPfl()) {
+            1       => 'rh',
+            2       => 'chef',
+            3       => 'employe',
+            default => 'employe',
+        };
+        return view("{$folder}/competence/{$page}", $data);
+    }
+
     // ── INDEX ─────────────────────────────────────────────────
     public function index()
     {
@@ -26,7 +37,34 @@ class CompetenceController extends BaseController
         $idPfl = $this->idPfl();
         $idDir = session()->get('id_Dir');
 
-        // ── Référentiel des compétences avec stats ──
+        // ── Employé : uniquement ses propres compétences ──
+        if ($idPfl == 3) {
+            $idEmp = $this->idEmp();
+
+            $competences = $db->table('obtenir')
+                ->select('obtenir.id_Obt, obtenir.Niveau_Obt, obtenir.Dte_Obt,
+                          competence.id_Cmp, competence.Libelle_Cmp')
+                ->join('competence', 'competence.id_Cmp = obtenir.id_Cmp', 'left')
+                ->where('obtenir.id_Emp', $idEmp)
+                ->orderBy('competence.Libelle_Cmp')
+                ->get()->getResultArray();
+
+            $nbDebutant = count(array_filter($competences, fn($c) => $c['Niveau_Obt'] === 'debutant'));
+            $nbInter    = count(array_filter($competences, fn($c) => $c['Niveau_Obt'] === 'intermediaire'));
+            $nbAvance   = count(array_filter($competences, fn($c) => $c['Niveau_Obt'] === 'avance'));
+
+            return $this->profileView('index', [
+                'title'       => 'Mes compétences',
+                'competences' => $competences,
+                'nbDebutant'  => $nbDebutant,
+                'nbInter'     => $nbInter,
+                'nbAvance'    => $nbAvance,
+                'idPfl'       => $idPfl,
+                'idEmp'       => $idEmp,
+            ]);
+        }
+
+        // ── RH / Chef : référentiel complet avec stats ──
         $competences = $db->table('competence')
             ->select('competence.id_Cmp, competence.Libelle_Cmp,
                       COUNT(DISTINCT obtenir.id_Emp) AS nb_employes,
@@ -38,7 +76,6 @@ class CompetenceController extends BaseController
             ->orderBy('competence.Libelle_Cmp')
             ->get()->getResultArray();
 
-        // ── Tous les résultats chargés — filtrage 100% côté JS, aucun rechargement ──
         $query = $db->table('obtenir')
             ->select('obtenir.id_Obt, obtenir.Niveau_Obt, obtenir.Dte_Obt,
                       employe.id_Emp, employe.Nom_Emp, employe.Prenom_Emp,
@@ -58,17 +95,15 @@ class CompetenceController extends BaseController
 
         $resultats = $query->orderBy('employe.Nom_Emp')->get()->getResultArray();
 
-        // ── Données pour les selects de filtres ──
         $directions = $db->table('direction')->orderBy('Nom_Dir')->get()->getResultArray();
 
-        // ── Stats globales ──
         $totalCompetences  = count($competences);
         $totalAttributions = $db->table('obtenir')->countAllResults();
         $totalDebutant     = $db->table('obtenir')->where('Niveau_Obt', 'debutant')->countAllResults();
         $totalInter        = $db->table('obtenir')->where('Niveau_Obt', 'intermediaire')->countAllResults();
         $totalAvance       = $db->table('obtenir')->where('Niveau_Obt', 'avance')->countAllResults();
 
-        return view('rh/competence/index', [
+        return $this->profileView('index', [
             'title'             => 'Référentiel des compétences',
             'competences'       => $competences,
             'resultats'         => $resultats,
@@ -89,6 +124,11 @@ class CompetenceController extends BaseController
         $db    = \Config\Database::connect();
         $idPfl = $this->idPfl();
         $idDir = session()->get('id_Dir');
+
+        // Employé : pas accès au détail du référentiel
+        if ($idPfl == 3) {
+            return redirect()->to('competence')->with('error', 'Accès refusé.');
+        }
 
         $competence = $db->table('competence')->where('id_Cmp', $id)->get()->getRowArray();
 
@@ -125,6 +165,7 @@ class CompetenceController extends BaseController
                   ->groupEnd();
         }
 
+        // Chef → uniquement sa direction
         if ($idPfl == 2) {
             $query->where('employe.id_Dir', $idDir);
         }
@@ -153,7 +194,7 @@ class CompetenceController extends BaseController
 
         $employesSans = $empQuery->get()->getResultArray();
 
-        return view('rh/competence/show', [
+        return $this->profileView('show', [
             'title'           => 'Compétence : ' . $competence['Libelle_Cmp'],
             'competence'      => $competence,
             'employes'        => $employes,
@@ -470,6 +511,11 @@ class CompetenceController extends BaseController
         $idPfl = $this->idPfl();
         $idDir = session()->get('id_Dir');
 
+        // Employé : redirige vers index (ses propres compétences)
+        if ($idPfl == 3) {
+            return redirect()->to('competence');
+        }
+
         $employe = $db->table('employe')
             ->select('employe.*, direction.Nom_Dir, grade.Libelle_Grd')
             ->join('direction', 'direction.id_Dir = employe.id_Dir', 'left')
@@ -497,7 +543,7 @@ class CompetenceController extends BaseController
         $toutesCompetences = $db->table('competence')->orderBy('Libelle_Cmp')->get()->getResultArray();
         $competencesDispo  = array_values(array_filter($toutesCompetences, fn($c) => !in_array($c['id_Cmp'], $dejaIds)));
 
-        return view('rh/competence/par_employe', [
+        return $this->profileView('par_employe', [
             'title'            => 'Compétences de ' . $employe['Prenom_Emp'] . ' ' . $employe['Nom_Emp'],
             'employe'          => $employe,
             'competences'      => $competences,

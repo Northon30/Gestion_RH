@@ -611,6 +611,17 @@
         ::-webkit-scrollbar-track { background: #111; }
         ::-webkit-scrollbar-thumb { background: rgba(245,166,35,0.3); border-radius: 5px; }
         ::-webkit-scrollbar-thumb:hover { background: rgba(245,166,35,0.5); }
+
+        @media (max-width: 768px) {
+    .main-wrapper {
+        margin-left: 0;
+    }
+
+    .navbar-top {
+        left: 0;
+        padding: 0 15px 0 65px;
+    }
+}
     </style>
 
     <?= $this->renderSection('css') ?>

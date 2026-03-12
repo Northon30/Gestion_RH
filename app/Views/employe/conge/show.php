@@ -1,0 +1,286 @@
+<?= $this->extend('layouts/app') ?>
+
+<?= $this->section('css') ?>
+<style>
+    :root {
+        --e-primary:        #6BAF6B;
+        --e-primary-pale:   rgba(107,175,107,0.12);
+        --e-primary-border: rgba(107,175,107,0.25);
+        --e-accent:         #8FCC8F;
+        --e-orange:         #F5A623;
+        --e-orange-pale:    rgba(245,166,35,0.10);
+        --e-orange-border:  rgba(245,166,35,0.25);
+        --e-red:            #ff6b7a;
+        --e-red-pale:       rgba(255,107,122,0.10);
+        --e-red-border:     rgba(255,107,122,0.25);
+        --e-blue-pale:      rgba(110,168,254,0.10);
+        --e-blue-border:    rgba(110,168,254,0.25);
+        --e-surface:        #1a1a1a;
+        --e-border:         rgba(255,255,255,0.06);
+        --e-text:           rgba(255,255,255,0.85);
+        --e-muted:          rgba(255,255,255,0.35);
+        --e-soft:           rgba(255,255,255,0.55);
+    }
+
+    .detail-grid { display:grid; grid-template-columns:1fr 320px; gap:16px; align-items:start; }
+
+    .card { background:var(--e-surface); border:1px solid var(--e-border); border-radius:14px; overflow:hidden; }
+    .card-header { padding:14px 18px; border-bottom:1px solid var(--e-border); display:flex; align-items:center; gap:10px; }
+    .card-icon { width:34px; height:34px; border-radius:8px; background:var(--e-primary-pale); border:1px solid var(--e-primary-border); display:flex; align-items:center; justify-content:center; color:var(--e-primary); font-size:0.82rem; flex-shrink:0; }
+    .card-title { color:#fff; font-size:0.85rem; font-weight:700; margin:0; }
+
+    .info-block { padding:18px; display:flex; flex-direction:column; gap:14px; }
+    .two-col { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    .info-item { display:flex; flex-direction:column; gap:3px; }
+    .info-label { font-size:0.67rem; color:var(--e-muted); text-transform:uppercase; letter-spacing:0.6px; font-weight:600; }
+    .info-value { color:var(--e-text); font-size:0.83rem; }
+
+    .badge { display:inline-flex; align-items:center; gap:5px; padding:4px 12px; border-radius:20px; font-size:0.75rem; font-weight:700; border:1px solid; }
+    .badge-en_attente   { background:var(--e-orange-pale); border-color:var(--e-orange-border); color:var(--e-orange); }
+    .badge-approuve_chef{ background:var(--e-blue-pale);   border-color:var(--e-blue-border);   color:#6ea8fe; }
+    .badge-rejete_chef  { background:var(--e-red-pale);    border-color:var(--e-red-border);     color:var(--e-red); }
+    .badge-valide_rh    { background:var(--e-primary-pale); border-color:var(--e-primary-border); color:var(--e-accent); }
+    .badge-rejete_rh    { background:var(--e-red-pale);    border-color:var(--e-red-border);     color:var(--e-red); }
+
+    .stepper { padding:18px; display:flex; flex-direction:column; gap:0; }
+    .step { display:flex; gap:14px; position:relative; }
+    .step:not(:last-child)::before { content:''; position:absolute; left:15px; top:32px; width:2px; height:calc(100% - 6px); background:var(--e-border); }
+    .step.done::before   { background:var(--e-primary); }
+    .step.active::before { background:var(--e-orange); }
+    .step.reject::before { background:var(--e-red); }
+
+    .step-dot { width:30px; height:30px; border-radius:50%; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:0.75rem; border:2px solid; margin-top:2px; background:var(--e-surface); }
+    .step-dot.done   { background:var(--e-primary-pale); border-color:var(--e-primary); color:var(--e-accent); }
+    .step-dot.active { background:var(--e-orange-pale);  border-color:var(--e-orange);  color:var(--e-orange); }
+    .step-dot.wait   { background:rgba(255,255,255,0.03); border-color:var(--e-border); color:var(--e-muted); }
+    .step-dot.reject { background:var(--e-red-pale);     border-color:var(--e-red);     color:var(--e-red); }
+
+    .step-body   { padding-bottom:18px; flex:1; }
+    .step-title  { color:#fff; font-size:0.82rem; font-weight:700; }
+    .step-sub    { color:var(--e-muted); font-size:0.72rem; margin-top:3px; }
+    .step-comment { background:#111; border:1px solid var(--e-border); border-radius:8px; padding:8px 12px; margin-top:8px; font-size:0.77rem; color:var(--e-soft); font-style:italic; }
+
+    .btn-orange { background:linear-gradient(135deg,var(--e-orange),#d4891a); border:none; color:#111; font-weight:700; border-radius:8px; padding:9px 18px; font-size:0.8rem; cursor:pointer; transition:all 0.2s; display:inline-flex; align-items:center; gap:7px; text-decoration:none; }
+    .btn-orange:hover { transform:translateY(-1px); box-shadow:0 5px 16px rgba(245,166,35,0.3); color:#111; }
+
+    .btn-danger { background:linear-gradient(135deg,#c0392b,#922b21); border:none; color:#fff; font-weight:700; border-radius:8px; padding:9px 18px; font-size:0.8rem; cursor:pointer; transition:all 0.2s; display:inline-flex; align-items:center; gap:7px; }
+    .btn-danger:hover { transform:translateY(-1px); box-shadow:0 5px 16px rgba(192,57,43,0.35); }
+
+    .btn-ghost { background:transparent; border:1px solid var(--e-border); color:var(--e-soft); font-weight:600; border-radius:8px; padding:8px 16px; font-size:0.8rem; cursor:pointer; transition:all 0.2s; display:inline-flex; align-items:center; gap:7px; text-decoration:none; }
+    .btn-ghost:hover { background:rgba(255,255,255,0.04); color:var(--e-text); }
+
+    .alert-success { background:var(--e-primary-pale); border:1px solid var(--e-primary-border); border-radius:10px; padding:11px 16px; color:var(--e-accent); font-size:0.82rem; display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+    .alert-error   { background:var(--e-red-pale); border:1px solid var(--e-red-border); border-radius:10px; padding:11px 16px; color:var(--e-red); font-size:0.82rem; display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+
+    .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.7); display:none; align-items:center; justify-content:center; z-index:1000; }
+    .modal-overlay.is-open { display:flex; }
+    .modal-box { background:#1f1f1f; border:1px solid var(--e-border); border-radius:14px; padding:28px; max-width:400px; width:90%; text-align:center; }
+    .modal-icon  { font-size:2rem; color:var(--e-red); margin-bottom:12px; }
+    .modal-title { color:#fff; font-size:0.95rem; font-weight:700; margin-bottom:8px; }
+    .modal-msg   { color:var(--e-muted); font-size:0.82rem; margin-bottom:20px; }
+    .modal-actions { display:flex; gap:10px; justify-content:center; }
+
+    @media (max-width:900px) { .detail-grid { grid-template-columns:1fr; } .two-col { grid-template-columns:1fr; } }
+</style>
+<?= $this->endSection() ?>
+
+<?= $this->section('content') ?>
+
+<?php
+$statutLabels = [
+    'en_attente'    => 'En attente',
+    'approuve_chef' => 'Approuvé Chef',
+    'rejete_chef'   => 'Rejeté Chef',
+    'valide_rh'     => 'Validé RH',
+    'rejete_rh'     => 'Rejeté RH',
+];
+$statut  = $conge['Statut_Cge'];
+$nbJours = (new DateTime($conge['DateDebut_Cge']))->diff(new DateTime($conge['DateFin_Cge']))->days + 1;
+?>
+
+<div class="page-header">
+    <div>
+        <h1><i class="fas fa-umbrella-beach me-2" style="color:var(--e-primary);"></i>Détail congé</h1>
+        <p><?= esc($conge['Libelle_Cge']) ?> — <?= $nbJours ?> jour(s)</p>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <?php if ($statut === 'en_attente'): ?>
+        <a href="<?= base_url('conge/edit/' . $conge['id_Cge']) ?>" class="btn-orange">
+            <i class="fas fa-pen"></i> Modifier
+        </a>
+        <button type="button" class="btn-danger" onclick="openDelete()">
+            <i class="fas fa-trash"></i> Annuler
+        </button>
+        <?php endif; ?>
+        <a href="<?= base_url('conge') ?>" class="btn-ghost">
+            <i class="fas fa-arrow-left"></i> Retour
+        </a>
+    </div>
+</div>
+
+<?php if (session()->getFlashdata('success')): ?>
+<div class="alert-success"><i class="fas fa-check-circle"></i> <?= esc(session()->getFlashdata('success')) ?></div>
+<?php endif; ?>
+<?php if (session()->getFlashdata('error')): ?>
+<div class="alert-error"><i class="fas fa-exclamation-circle"></i> <?= esc(session()->getFlashdata('error')) ?></div>
+<?php endif; ?>
+
+<div class="detail-grid">
+
+    <!-- COL GAUCHE -->
+    <div class="card">
+        <div class="card-header">
+            <div class="card-icon"><i class="fas fa-info-circle"></i></div>
+            <p class="card-title">Informations</p>
+            <span class="badge badge-<?= $statut ?>" style="margin-left:auto;">
+                <?= $statutLabels[$statut] ?? $statut ?>
+            </span>
+        </div>
+        <div class="info-block">
+            <div class="info-item">
+                <span class="info-label">Libellé</span>
+                <span class="info-value" style="font-weight:600;font-size:0.9rem;"><?= esc($conge['Libelle_Cge']) ?></span>
+            </div>
+            <div class="two-col">
+                <div class="info-item">
+                    <span class="info-label">Type</span>
+                    <span class="info-value"><?= esc($conge['Libelle_Tcg']) ?></span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Date de demande</span>
+                    <span class="info-value"><?= date('d/m/Y', strtotime($conge['DateDemande_Cge'])) ?></span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Date de début</span>
+                    <span class="info-value"><?= date('d/m/Y', strtotime($conge['DateDebut_Cge'])) ?></span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Date de fin</span>
+                    <span class="info-value"><?= date('d/m/Y', strtotime($conge['DateFin_Cge'])) ?></span>
+                </div>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Durée</span>
+                <span class="info-value" style="color:var(--e-orange);font-weight:700;font-size:1rem;">
+                    <?= $nbJours ?> jour(s)
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- COL DROITE — Stepper -->
+    <div class="card">
+        <div class="card-header">
+            <div class="card-icon"><i class="fas fa-route"></i></div>
+            <p class="card-title">Suivi de la demande</p>
+        </div>
+        <div class="stepper">
+
+            <!-- Étape 1 : Soumission -->
+            <div class="step done">
+                <div class="step-dot done"><i class="fas fa-check"></i></div>
+                <div class="step-body">
+                    <div class="step-title">Demande soumise</div>
+                    <div class="step-sub"><?= date('d/m/Y', strtotime($conge['DateDemande_Cge'])) ?></div>
+                </div>
+            </div>
+
+            <!-- Étape 2 : Chef -->
+            <?php
+            $chefDone   = in_array($statut, ['approuve_chef','valide_rh','rejete_chef','rejete_rh']);
+            $chefRejet  = $statut === 'rejete_chef';
+            $chefActive = $statut === 'en_attente';
+            ?>
+            <div class="step <?= $chefDone ? ($chefRejet ? 'reject' : 'done') : ($chefActive ? 'active' : '') ?>">
+                <div class="step-dot <?= $chefDone ? ($chefRejet ? 'reject' : 'done') : ($chefActive ? 'active' : 'wait') ?>">
+                    <i class="fas <?= $chefRejet ? 'fa-times' : ($chefDone ? 'fa-check' : 'fa-clock') ?>"></i>
+                </div>
+                <div class="step-body">
+                    <div class="step-title">Approbation Chef de Direction</div>
+                    <div class="step-sub">
+                        <?php if ($chefDone && $conge['DateDecisionDir_Cge']): ?>
+                        <?= date('d/m/Y', strtotime($conge['DateDecisionDir_Cge'])) ?>
+                        <?php if ($conge['NomValidChef']): ?>
+                        — <?= esc($conge['PrenomValidChef'] . ' ' . $conge['NomValidChef']) ?>
+                        <?php endif; ?>
+                        <?php elseif ($chefActive): ?>
+                        En attente de votre Chef de Direction
+                        <?php else: ?>
+                        En attente
+                        <?php endif; ?>
+                    </div>
+                    <?php if ($conge['CommentaireDir_Cge']): ?>
+                    <div class="step-comment">
+                        <i class="fas fa-comment-dots me-1"></i><?= esc($conge['CommentaireDir_Cge']) ?>
+                    </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+
+            <!-- Étape 3 : RH -->
+            <?php
+            $rhDone   = in_array($statut, ['valide_rh','rejete_rh']);
+            $rhRejet  = $statut === 'rejete_rh';
+            $rhActive = $statut === 'approuve_chef';
+            ?>
+            <div class="step <?= $rhDone ? ($rhRejet ? 'reject' : 'done') : ($rhActive ? 'active' : '') ?>">
+                <div class="step-dot <?= $rhDone ? ($rhRejet ? 'reject' : 'done') : ($rhActive ? 'active' : 'wait') ?>">
+                    <i class="fas <?= $rhRejet ? 'fa-times' : ($rhDone ? 'fa-check' : 'fa-clock') ?>"></i>
+                </div>
+                <div class="step-body">
+                    <div class="step-title">Validation RH</div>
+                    <div class="step-sub">
+                        <?php if ($rhDone && $conge['DateValidationRH_Cge']): ?>
+                        <?= date('d/m/Y', strtotime($conge['DateValidationRH_Cge'])) ?>
+                        <?php if ($conge['NomValidRH']): ?>
+                        — <?= esc($conge['PrenomValidRH'] . ' ' . $conge['NomValidRH']) ?>
+                        <?php endif; ?>
+                        <?php elseif ($rhActive): ?>
+                        En attente de validation finale RH
+                        <?php else: ?>
+                        En attente
+                        <?php endif; ?>
+                    </div>
+                    <?php if ($conge['CommentaireRH_Cge']): ?>
+                    <div class="step-comment">
+                        <i class="fas fa-comment-dots me-1"></i><?= esc($conge['CommentaireRH_Cge']) ?>
+                    </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+<!-- Modal annulation -->
+<div class="modal-overlay" id="modal-delete">
+    <div class="modal-box">
+        <div class="modal-icon"><i class="fas fa-trash-alt"></i></div>
+        <div class="modal-title">Annuler cette demande ?</div>
+        <div class="modal-msg">Cette action est irréversible.</div>
+        <div class="modal-actions">
+            <button type="button" class="btn-ghost" onclick="closeDelete()">
+                <i class="fas fa-times"></i> Retour
+            </button>
+            <form method="POST" action="<?= base_url('conge/delete/' . $conge['id_Cge']) ?>">
+                <?= csrf_field() ?>
+                <button type="submit" class="btn-danger">
+                    <i class="fas fa-trash"></i> Confirmer
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<?= $this->endSection() ?>
+
+<?= $this->section('js') ?>
+<script>
+(function () {
+    window.openDelete  = function () { document.getElementById('modal-delete').classList.add('is-open'); };
+    window.closeDelete = function () { document.getElementById('modal-delete').classList.remove('is-open'); };
+})();
+</script>
+<?= $this->endSection() ?>

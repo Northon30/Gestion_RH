@@ -23,6 +23,11 @@
     .btn-filter-reset { background:transparent; border:1px solid rgba(220,53,69,0.3); color:var(--c-red); border-radius:8px; padding:7px 14px; font-size:0.78rem; cursor:pointer; transition:all 0.2s; display:inline-flex; align-items:center; gap:5px; }
     .btn-filter-reset:hover { background:rgba(220,53,69,0.1); }
 
+    .tab-pills { display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap; }
+    .tab-pill { padding:6px 14px; border-radius:20px; font-size:0.78rem; font-weight:600; cursor:pointer; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.04); color:var(--c-muted); transition:all 0.2s; }
+    .tab-pill:hover, .tab-pill.active { background:var(--c-primary-pale); border-color:var(--c-primary-border); color:var(--c-accent); }
+    .tab-pill .pill-count { background:rgba(255,255,255,0.1); border-radius:10px; padding:1px 6px; font-size:0.68rem; margin-left:4px; }
+
     .main-card { background:#1a1a1a; border:1px solid rgba(255,255,255,0.07); border-radius:12px; overflow:hidden; }
     .main-card-head { padding:15px 20px; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; align-items:center; justify-content:space-between; }
     .main-card-head h5 { color:#fff; font-size:0.95rem; font-weight:600; margin:0; display:flex; align-items:center; gap:9px; }
@@ -39,16 +44,17 @@
 
     .emp-cell { display:flex; align-items:center; gap:9px; }
     .emp-av { width:30px; height:30px; border-radius:50%; background:var(--c-primary-pale); border:1px solid var(--c-primary-border); display:flex; align-items:center; justify-content:center; color:var(--c-accent); font-size:0.72rem; font-weight:700; flex-shrink:0; }
-    .emp-name { font-weight:500; color:rgba(255,255,255,0.8); font-size:0.83rem; }
 
     .badge-status { display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border-radius:20px; font-size:0.72rem; font-weight:600; white-space:nowrap; }
     .badge-status.en_attente { background:rgba(245,166,35,0.12); border:1px solid rgba(245,166,35,0.3); color:var(--c-orange); }
-    .badge-status.valide_rh  { background:var(--c-primary-pale); border:1px solid var(--c-primary-border); color:var(--c-accent); }
-    .badge-status.rejete_rh  { background:rgba(220,53,69,0.12); border:1px solid rgba(220,53,69,0.3); color:var(--c-red); }
-    .badge-status.approuve   { background:rgba(144,201,127,0.12); border:1px solid rgba(144,201,127,0.3); color:var(--c-green); }
+    .badge-status.approuve   { background:var(--c-primary-pale); border:1px solid var(--c-primary-border); color:var(--c-accent); }
     .badge-status.rejete     { background:rgba(220,53,69,0.12); border:1px solid rgba(220,53,69,0.3); color:var(--c-red); }
+    .badge-status.valide_rh  { background:rgba(144,201,127,0.12); border:1px solid rgba(144,201,127,0.3); color:var(--c-green); }
+    .badge-status.rejete_rh  { background:rgba(220,53,69,0.12); border:1px solid rgba(220,53,69,0.3); color:var(--c-red); }
 
-    .badge-type { display:inline-flex; align-items:center; background:var(--c-primary-pale); border:1px solid var(--c-primary-border); color:var(--c-accent); padding:3px 9px; border-radius:20px; font-size:0.72rem; font-weight:500; }
+    .badge-type { display:inline-flex; align-items:center; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:var(--c-soft); padding:3px 9px; border-radius:20px; font-size:0.72rem; font-weight:500; }
+    .badge-type.demande    { background:var(--c-primary-pale); border-color:var(--c-primary-border); color:var(--c-accent); }
+    .badge-type.invitation { background:rgba(245,166,35,0.1); border-color:rgba(245,166,35,0.25); color:var(--c-orange); }
 
     .action-btn { background:transparent; border:1px solid rgba(255,255,255,0.1); color:var(--c-muted); width:30px; height:30px; border-radius:7px; display:inline-flex; align-items:center; justify-content:center; font-size:0.78rem; transition:all 0.2s; text-decoration:none; cursor:pointer; }
     .action-btn:hover         { border-color:var(--c-primary); color:var(--c-accent); background:var(--c-primary-pale); }
@@ -61,31 +67,22 @@
     .alert-success-dark { background:rgba(144,201,127,0.1); border:1px solid rgba(144,201,127,0.25); color:var(--c-green); border-radius:10px; padding:12px 16px; font-size:0.85rem; margin-bottom:16px; display:flex; align-items:center; gap:8px; }
     .alert-error-dark   { background:rgba(220,53,69,0.1);   border:1px solid rgba(220,53,69,0.25);   color:var(--c-red);   border-radius:10px; padding:12px 16px; font-size:0.85rem; margin-bottom:16px; display:flex; align-items:center; gap:8px; }
 
-    .tab-pills { display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap; }
-    .tab-pill { padding:6px 14px; border-radius:20px; font-size:0.78rem; font-weight:600; cursor:pointer; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.04); color:var(--c-muted); transition:all 0.2s; }
-    .tab-pill:hover, .tab-pill.active { background:var(--c-primary-pale); border-color:var(--c-primary-border); color:var(--c-accent); }
-    .tab-pill .pill-count { background:rgba(255,255,255,0.1); border-radius:10px; padding:1px 6px; font-size:0.68rem; margin-left:4px; }
-
     .modal-dark { display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.65); align-items:center; justify-content:center; }
     .modal-dark.is-open { display:flex; }
     .modal-box { background:#1e1e1e; border:1px solid rgba(255,255,255,0.08); border-radius:14px; width:420px; max-width:95vw; overflow:hidden; }
     .modal-head { padding:18px 20px; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; align-items:center; justify-content:space-between; }
     .modal-head h6 { color:#fff; font-size:0.95rem; font-weight:600; margin:0; display:flex; align-items:center; gap:8px; }
     .modal-close { background:none; border:none; color:var(--c-muted); font-size:1.1rem; cursor:pointer; }
-    .modal-close:hover { color:#fff; }
     .modal-body { padding:20px; }
     .modal-foot { padding:15px 20px; border-top:1px solid rgba(255,255,255,0.05); display:flex; justify-content:flex-end; gap:10px; }
-
     .form-control-dark { background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:#fff; border-radius:8px; padding:10px 14px; font-size:0.88rem; width:100%; outline:none; transition:border-color 0.2s; resize:vertical; }
-    .form-control-dark:focus { border-color:var(--c-primary); background:rgba(255,255,255,0.07); }
+    .form-control-dark:focus { border-color:var(--c-primary); }
     .form-label-dark { color:var(--c-muted); font-size:0.82rem; margin-bottom:6px; display:block; }
-
     .btn-approve { background:linear-gradient(135deg,#2D6A4F,#1e4d38); border:none; color:#fff; font-weight:600; border-radius:8px; padding:8px 18px; font-size:0.85rem; cursor:pointer; transition:all 0.2s; }
     .btn-approve:hover { box-shadow:0 4px 12px rgba(45,106,79,0.4); }
     .btn-reject  { background:linear-gradient(135deg,#dc3545,#a71d2a); border:none; color:#fff; font-weight:600; border-radius:8px; padding:8px 18px; font-size:0.85rem; cursor:pointer; transition:all 0.2s; }
-    .btn-reject:hover  { box-shadow:0 4px 12px rgba(220,53,69,0.4); }
+    .btn-reject:hover { box-shadow:0 4px 12px rgba(220,53,69,0.4); }
     .btn-cancel  { background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); color:var(--c-soft); border-radius:8px; padding:8px 16px; font-size:0.85rem; cursor:pointer; }
-    .btn-cancel:hover { background:rgba(255,255,255,0.1); }
 </style>
 <?= $this->endSection() ?>
 
@@ -94,24 +91,24 @@
 <?php
 $labStatut = [
     'en_attente' => 'En attente',
-    'valide_rh'  => 'Validé RH',
-    'rejete_rh'  => 'Rejeté RH',
     'approuve'   => 'Approuvé',
     'rejete'     => 'Refusé',
+    'valide_rh'  => 'Validé RH',
+    'rejete_rh'  => 'Rejeté RH',
 ];
 
-$mesAbsences    = array_filter($absences, fn($a) => $a['id_Emp'] == $idEmp);
-$dirAbsences    = array_filter($absences, fn($a) => $a['id_Emp'] != $idEmp);
-$aApprouver     = array_filter($absences, fn($a) => $a['id_Emp'] != $idEmp && $a['Statut_Abs'] == 'valide_rh');
+$directionDemandes = array_filter($demandes, fn($d) => $d['id_Emp'] != $idEmp);
+$mesDemandes       = array_filter($demandes, fn($d) => $d['id_Emp'] == $idEmp);
+$aApprouver        = array_filter($demandes, fn($d) => $d['id_Emp'] != $idEmp && $d['Statut_DFrm'] == 'en_attente');
 ?>
 
 <div class="page-header">
     <div>
-        <h1><i class="fas fa-user-clock me-2" style="color:var(--c-primary);"></i>Gestion des Absences</h1>
-        <p>Suivez et approuvez les absences de votre direction</p>
+        <h1><i class="fas fa-chalkboard-teacher me-2" style="color:var(--c-primary);"></i>Demandes de Formation</h1>
+        <p>Gérez les demandes de votre direction et soumettez les vôtres</p>
     </div>
-    <a href="<?= base_url('absence/create') ?>" class="btn-primary-c">
-        <i class="fas fa-plus"></i> Déclarer mon absence
+    <a href="<?= base_url('demande-formation/create') ?>" class="btn-primary-c">
+        <i class="fas fa-plus"></i> Nouvelle demande
     </a>
 </div>
 
@@ -125,14 +122,14 @@ $aApprouver     = array_filter($absences, fn($a) => $a['id_Emp'] != $idEmp && $a
 <!-- Onglets -->
 <div class="tab-pills">
     <div class="tab-pill active" data-tab="direction">
-        Direction <span class="pill-count"><?= count($dirAbsences) ?></span>
+        Direction <span class="pill-count"><?= count($directionDemandes) ?></span>
     </div>
     <div class="tab-pill" data-tab="approuver">
         À approuver
         <span class="pill-count" style="background:rgba(58,123,213,0.2);color:var(--c-accent);"><?= count($aApprouver) ?></span>
     </div>
     <div class="tab-pill" data-tab="mes">
-        Mes absences <span class="pill-count"><?= count($mesAbsences) ?></span>
+        Mes demandes <span class="pill-count"><?= count($mesDemandes) ?></span>
     </div>
 </div>
 
@@ -151,67 +148,77 @@ $aApprouver     = array_filter($absences, fn($a) => $a['id_Emp'] != $idEmp && $a
         <label>Type</label>
         <select id="f-type">
             <option value="">Tous</option>
-            <?php foreach ($typesAbsence as $t): ?>
-            <option value="<?= $t['id_TAbs'] ?>"><?= esc($t['Libelle_TAbs']) ?></option>
-            <?php endforeach; ?>
+            <option value="demande">Demande</option>
+            <option value="invitation">Invitation</option>
         </select>
     </div>
     <div class="filter-group">
         <label>Recherche</label>
-        <input type="text" id="f-search" placeholder="Nom employé...">
+        <input type="text" id="f-search" placeholder="Nom, formation...">
     </div>
     <button class="btn-filter-reset" onclick="resetFiltres()">
         <i class="fas fa-times"></i> Réinitialiser
     </button>
+    <span style="margin-left:auto;color:var(--c-muted);font-size:0.78rem;" id="count-label"></span>
 </div>
 
 <!-- Tab direction -->
 <div id="tab-direction" class="tab-content">
     <div class="main-card">
         <div class="main-card-head">
-            <h5><i class="fas fa-users"></i> Absences de la direction</h5>
-            <span style="color:var(--c-muted);font-size:0.78rem;" id="count-dir"><?= count($dirAbsences) ?> absence(s)</span>
+            <h5><i class="fas fa-users"></i> Demandes de la direction</h5>
+            <span style="color:var(--c-muted);font-size:0.78rem;" id="count-dir"><?= count($directionDemandes) ?> demande(s)</span>
         </div>
-        <?php if (!empty($dirAbsences)): ?>
+        <?php if (!empty($directionDemandes)): ?>
         <table class="table-c" id="table-direction">
             <thead>
                 <tr>
                     <th>Employé</th>
+                    <th>Formation</th>
                     <th>Type</th>
-                    <th>Début</th>
-                    <th>Fin</th>
+                    <th>Date</th>
                     <th>Statut</th>
                     <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
-                <?php foreach ($dirAbsences as $a): ?>
-                <?php $ini = strtoupper(mb_substr($a['Prenom_Emp'],0,1).mb_substr($a['Nom_Emp'],0,1)); ?>
-                <tr data-statut="<?= $a['Statut_Abs'] ?>"
-                    data-type="<?= $a['id_TAbs'] ?>"
-                    data-nom="<?= strtolower($a['Nom_Emp'].' '.$a['Prenom_Emp']) ?>">
+                <?php foreach ($directionDemandes as $d): ?>
+                <?php
+                $ini   = strtoupper(mb_substr($d['Prenom_Emp'],0,1).mb_substr($d['Nom_Emp'],0,1));
+                $titre = $d['Description_Frm'] ?: $d['Description_Libre'] ?: '—';
+                ?>
+                <tr data-statut="<?= $d['Statut_DFrm'] ?>"
+                    data-type="<?= strtolower($d['Type_DFrm']) ?>"
+                    data-nom="<?= strtolower($d['Nom_Emp'].' '.$d['Prenom_Emp'].' '.$titre) ?>">
                     <td>
                         <div class="emp-cell">
                             <div class="emp-av"><?= $ini ?></div>
-                            <div class="emp-name"><?= esc($a['Prenom_Emp'].' '.$a['Nom_Emp']) ?></div>
+                            <div style="color:rgba(255,255,255,0.8);font-weight:500;"><?= esc($d['Prenom_Emp'].' '.$d['Nom_Emp']) ?></div>
                         </div>
                     </td>
-                    <td><span class="badge-type"><?= esc($a['Libelle_TAbs']) ?></span></td>
-                    <td><?= date('d/m/Y', strtotime($a['DateDebut_Abs'])) ?></td>
-                    <td><?= $a['DateFin_Abs'] ? date('d/m/Y', strtotime($a['DateFin_Abs'])) : '—' ?></td>
-                    <td><span class="badge-status <?= $a['Statut_Abs'] ?>"><?= $labStatut[$a['Statut_Abs']] ?? $a['Statut_Abs'] ?></span></td>
+                    <td style="max-width:200px;">
+                        <div style="color:rgba(255,255,255,0.75);font-size:0.82rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><?= esc($titre) ?></div>
+                        <?php if ($d['DateDebut_Frm'] || $d['DateDebut_Libre']): ?>
+                        <div style="color:var(--c-muted);font-size:0.72rem;">
+                            <?= date('d/m/Y', strtotime($d['DateDebut_Frm'] ?: $d['DateDebut_Libre'])) ?>
+                        </div>
+                        <?php endif; ?>
+                    </td>
+                    <td><span class="badge-type <?= strtolower($d['Type_DFrm']) ?>"><?= ucfirst($d['Type_DFrm']) ?></span></td>
+                    <td><?= date('d/m/Y', strtotime($d['DateDemande'])) ?></td>
+                    <td><span class="badge-status <?= $d['Statut_DFrm'] ?>"><?= $labStatut[$d['Statut_DFrm']] ?? $d['Statut_DFrm'] ?></span></td>
                     <td>
                         <div style="display:flex;gap:5px;">
-                            <a href="<?= base_url('absence/show/'.$a['id_Abs']) ?>" class="action-btn" title="Voir">
+                            <a href="<?= base_url('demande-formation/show/'.$d['id_DFrm']) ?>" class="action-btn" title="Voir">
                                 <i class="fas fa-eye"></i>
                             </a>
-                            <?php if ($a['Statut_Abs'] == 'valide_rh'): ?>
+                            <?php if ($d['Statut_DFrm'] == 'en_attente'): ?>
                             <button class="action-btn approve" title="Approuver"
-                                onclick="openApprouver(<?= $a['id_Abs'] ?>, '<?= esc($a['Prenom_Emp'].' '.$a['Nom_Emp']) ?>')">
+                                onclick="openApprouver(<?= $d['id_DFrm'] ?>, '<?= esc($d['Prenom_Emp'].' '.$d['Nom_Emp']) ?>')">
                                 <i class="fas fa-check"></i>
                             </button>
                             <button class="action-btn reject" title="Refuser"
-                                onclick="openRefuser(<?= $a['id_Abs'] ?>, '<?= esc($a['Prenom_Emp'].' '.$a['Nom_Emp']) ?>')">
+                                onclick="openRejeter(<?= $d['id_DFrm'] ?>, '<?= esc($d['Prenom_Emp'].' '.$d['Nom_Emp']) ?>')">
                                 <i class="fas fa-times"></i>
                             </button>
                             <?php endif; ?>
@@ -223,8 +230,8 @@ $aApprouver     = array_filter($absences, fn($a) => $a['id_Emp'] != $idEmp && $a
         </table>
         <?php else: ?>
         <div class="empty-state">
-            <i class="fas fa-check-circle" style="color:var(--c-green);opacity:1;"></i>
-            Aucune absence dans votre direction
+            <i class="fas fa-inbox"></i>
+            Aucune demande dans votre direction
         </div>
         <?php endif; ?>
     </div>
@@ -234,45 +241,48 @@ $aApprouver     = array_filter($absences, fn($a) => $a['id_Emp'] != $idEmp && $a
 <div id="tab-approuver" class="tab-content" style="display:none;">
     <div class="main-card">
         <div class="main-card-head">
-            <h5><i class="fas fa-clock" style="color:var(--c-accent);"></i> Absences à approuver</h5>
+            <h5><i class="fas fa-clock" style="color:var(--c-accent);"></i> À approuver</h5>
             <span style="color:var(--c-accent);font-size:0.78rem;"><?= count($aApprouver) ?> en attente</span>
         </div>
-        <?php $aApprouverArr = array_values($aApprouver); ?>
-        <?php if (!empty($aApprouverArr)): ?>
+        <?php $aApprArr = array_values($aApprouver); ?>
+        <?php if (!empty($aApprArr)): ?>
         <table class="table-c">
             <thead>
                 <tr>
                     <th>Employé</th>
+                    <th>Formation demandée</th>
                     <th>Type</th>
-                    <th>Début</th>
-                    <th>Fin</th>
+                    <th>Date demande</th>
                     <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
-                <?php foreach ($aApprouverArr as $a): ?>
-                <?php $ini = strtoupper(mb_substr($a['Prenom_Emp'],0,1).mb_substr($a['Nom_Emp'],0,1)); ?>
+                <?php foreach ($aApprArr as $d): ?>
+                <?php
+                $ini   = strtoupper(mb_substr($d['Prenom_Emp'],0,1).mb_substr($d['Nom_Emp'],0,1));
+                $titre = $d['Description_Frm'] ?: $d['Description_Libre'] ?: '—';
+                ?>
                 <tr>
                     <td>
                         <div class="emp-cell">
                             <div class="emp-av"><?= $ini ?></div>
-                            <div class="emp-name"><?= esc($a['Prenom_Emp'].' '.$a['Nom_Emp']) ?></div>
+                            <div style="color:rgba(255,255,255,0.8);font-weight:500;"><?= esc($d['Prenom_Emp'].' '.$d['Nom_Emp']) ?></div>
                         </div>
                     </td>
-                    <td><span class="badge-type"><?= esc($a['Libelle_TAbs']) ?></span></td>
-                    <td><?= date('d/m/Y', strtotime($a['DateDebut_Abs'])) ?></td>
-                    <td><?= $a['DateFin_Abs'] ? date('d/m/Y', strtotime($a['DateFin_Abs'])) : '—' ?></td>
+                    <td style="color:rgba(255,255,255,0.75);font-size:0.83rem;"><?= esc($titre) ?></td>
+                    <td><span class="badge-type <?= strtolower($d['Type_DFrm']) ?>"><?= ucfirst($d['Type_DFrm']) ?></span></td>
+                    <td><?= date('d/m/Y', strtotime($d['DateDemande'])) ?></td>
                     <td>
                         <div style="display:flex;gap:5px;">
-                            <a href="<?= base_url('absence/show/'.$a['id_Abs']) ?>" class="action-btn" title="Voir">
+                            <a href="<?= base_url('demande-formation/show/'.$d['id_DFrm']) ?>" class="action-btn" title="Voir">
                                 <i class="fas fa-eye"></i>
                             </a>
                             <button class="action-btn approve" title="Approuver"
-                                onclick="openApprouver(<?= $a['id_Abs'] ?>, '<?= esc($a['Prenom_Emp'].' '.$a['Nom_Emp']) ?>')">
+                                onclick="openApprouver(<?= $d['id_DFrm'] ?>, '<?= esc($d['Prenom_Emp'].' '.$d['Nom_Emp']) ?>')">
                                 <i class="fas fa-check"></i>
                             </button>
                             <button class="action-btn reject" title="Refuser"
-                                onclick="openRefuser(<?= $a['id_Abs'] ?>, '<?= esc($a['Prenom_Emp'].' '.$a['Nom_Emp']) ?>')">
+                                onclick="openRejeter(<?= $d['id_DFrm'] ?>, '<?= esc($d['Prenom_Emp'].' '.$d['Nom_Emp']) ?>')">
                                 <i class="fas fa-times"></i>
                             </button>
                         </div>
@@ -284,50 +294,46 @@ $aApprouver     = array_filter($absences, fn($a) => $a['id_Emp'] != $idEmp && $a
         <?php else: ?>
         <div class="empty-state">
             <i class="fas fa-check-circle" style="color:var(--c-green);opacity:1;"></i>
-            Aucune absence en attente d'approbation
+            Aucune demande en attente d'approbation
         </div>
         <?php endif; ?>
     </div>
 </div>
 
-<!-- Tab mes absences -->
+<!-- Tab mes demandes -->
 <div id="tab-mes" class="tab-content" style="display:none;">
     <div class="main-card">
         <div class="main-card-head">
-            <h5><i class="fas fa-user"></i> Mes absences déclarées</h5>
-            <a href="<?= base_url('absence/create') ?>" class="btn-primary-c">
-                <i class="fas fa-plus"></i> Déclarer
+            <h5><i class="fas fa-user"></i> Mes demandes</h5>
+            <a href="<?= base_url('demande-formation/create') ?>" class="btn-primary-c">
+                <i class="fas fa-plus"></i> Nouvelle
             </a>
         </div>
-        <?php $mesAbsArr = array_values($mesAbsences); ?>
-        <?php if (!empty($mesAbsArr)): ?>
+        <?php $mesArr = array_values($mesDemandes); ?>
+        <?php if (!empty($mesArr)): ?>
         <table class="table-c">
             <thead>
                 <tr>
+                    <th>Formation</th>
                     <th>Type</th>
-                    <th>Début</th>
-                    <th>Fin</th>
+                    <th>Date</th>
                     <th>Statut</th>
                     <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
-                <?php foreach ($mesAbsArr as $a): ?>
+                <?php foreach ($mesArr as $d): ?>
+                <?php $titre = $d['Description_Frm'] ?: $d['Description_Libre'] ?: '—'; ?>
                 <tr>
-                    <td><span class="badge-type"><?= esc($a['Libelle_TAbs']) ?></span></td>
-                    <td><?= date('d/m/Y', strtotime($a['DateDebut_Abs'])) ?></td>
-                    <td><?= $a['DateFin_Abs'] ? date('d/m/Y', strtotime($a['DateFin_Abs'])) : '—' ?></td>
-                    <td><span class="badge-status <?= $a['Statut_Abs'] ?>"><?= $labStatut[$a['Statut_Abs']] ?? $a['Statut_Abs'] ?></span></td>
+                    <td style="color:rgba(255,255,255,0.8);font-size:0.83rem;"><?= esc($titre) ?></td>
+                    <td><span class="badge-type <?= strtolower($d['Type_DFrm']) ?>"><?= ucfirst($d['Type_DFrm']) ?></span></td>
+                    <td><?= date('d/m/Y', strtotime($d['DateDemande'])) ?></td>
+                    <td><span class="badge-status <?= $d['Statut_DFrm'] ?>"><?= $labStatut[$d['Statut_DFrm']] ?? $d['Statut_DFrm'] ?></span></td>
                     <td>
                         <div style="display:flex;gap:5px;">
-                            <a href="<?= base_url('absence/show/'.$a['id_Abs']) ?>" class="action-btn" title="Voir">
+                            <a href="<?= base_url('demande-formation/show/'.$d['id_DFrm']) ?>" class="action-btn" title="Voir">
                                 <i class="fas fa-eye"></i>
                             </a>
-                            <?php if ($a['Statut_Abs'] == 'en_attente'): ?>
-                            <a href="<?= base_url('absence/edit/'.$a['id_Abs']) ?>" class="action-btn" title="Modifier">
-                                <i class="fas fa-pen"></i>
-                            </a>
-                            <?php endif; ?>
                         </div>
                     </td>
                 </tr>
@@ -336,8 +342,8 @@ $aApprouver     = array_filter($absences, fn($a) => $a['id_Emp'] != $idEmp && $a
         </table>
         <?php else: ?>
         <div class="empty-state">
-            <i class="fas fa-user-clock"></i>
-            Vous n'avez pas encore déclaré d'absence
+            <i class="fas fa-chalkboard-teacher"></i>
+            Vous n'avez pas encore soumis de demande
         </div>
         <?php endif; ?>
     </div>
@@ -347,18 +353,18 @@ $aApprouver     = array_filter($absences, fn($a) => $a['id_Emp'] != $idEmp && $a
 <div class="modal-dark" id="modal-approuver">
     <div class="modal-box">
         <div class="modal-head">
-            <h6><i class="fas fa-check-circle" style="color:var(--c-green);"></i> Approuver l'absence</h6>
+            <h6><i class="fas fa-check-circle" style="color:var(--c-green);"></i> Approuver la demande</h6>
             <button class="modal-close" onclick="closeModal('modal-approuver')"><i class="fas fa-times"></i></button>
         </div>
         <form method="post" id="form-approuver">
             <?= csrf_field() ?>
             <div class="modal-body">
                 <p style="color:var(--c-soft);font-size:0.85rem;margin-bottom:14px;">
-                    Approuver l'absence de <strong id="approuver-nom" style="color:#fff;"></strong> ?
-                    <br><small style="color:var(--c-muted);">L'employé et le RH seront notifiés.</small>
+                    Approuver la demande de <strong id="approuver-nom" style="color:#fff;"></strong> ?
+                    <br><small style="color:var(--c-muted);">Elle sera transmise au RH pour validation finale.</small>
                 </p>
                 <label class="form-label-dark">Commentaire (optionnel)</label>
-                <textarea class="form-control-dark" name="commentaire" rows="3" placeholder="Commentaire..."></textarea>
+                <textarea class="form-control-dark" name="CommentaireDir" rows="3" placeholder="Commentaire..."></textarea>
             </div>
             <div class="modal-foot">
                 <button type="button" class="btn-cancel" onclick="closeModal('modal-approuver')">Annuler</button>
@@ -368,24 +374,24 @@ $aApprouver     = array_filter($absences, fn($a) => $a['id_Emp'] != $idEmp && $a
     </div>
 </div>
 
-<!-- Modal Refuser -->
-<div class="modal-dark" id="modal-refuser">
+<!-- Modal Rejeter -->
+<div class="modal-dark" id="modal-rejeter">
     <div class="modal-box">
         <div class="modal-head">
-            <h6><i class="fas fa-times-circle" style="color:var(--c-red);"></i> Refuser l'absence</h6>
-            <button class="modal-close" onclick="closeModal('modal-refuser')"><i class="fas fa-times"></i></button>
+            <h6><i class="fas fa-times-circle" style="color:var(--c-red);"></i> Refuser la demande</h6>
+            <button class="modal-close" onclick="closeModal('modal-rejeter')"><i class="fas fa-times"></i></button>
         </div>
-        <form method="post" id="form-refuser">
+        <form method="post" id="form-rejeter">
             <?= csrf_field() ?>
             <div class="modal-body">
                 <p style="color:var(--c-soft);font-size:0.85rem;margin-bottom:14px;">
-                    Refuser l'absence de <strong id="refuser-nom" style="color:#fff;"></strong> ?
+                    Refuser la demande de <strong id="rejeter-nom" style="color:#fff;"></strong> ?
                 </p>
                 <label class="form-label-dark">Motif de refus <span style="color:var(--c-red);">*</span></label>
-                <textarea class="form-control-dark" name="commentaire" rows="3" placeholder="Motif obligatoire..." required></textarea>
+                <textarea class="form-control-dark" name="CommentaireDir" rows="3" placeholder="Motif obligatoire..." required></textarea>
             </div>
             <div class="modal-foot">
-                <button type="button" class="btn-cancel" onclick="closeModal('modal-refuser')">Annuler</button>
+                <button type="button" class="btn-cancel" onclick="closeModal('modal-rejeter')">Annuler</button>
                 <button type="submit" class="btn-reject"><i class="fas fa-times me-1"></i> Refuser</button>
             </div>
         </form>
@@ -419,7 +425,7 @@ function applyFiltres() {
         row.style.display = ok ? '' : 'none';
         if (ok) visible++;
     });
-    document.getElementById('count-dir').textContent = visible + ' absence(s)';
+    document.getElementById('count-dir').textContent = visible + ' demande(s)';
 }
 
 function resetFiltres() {
@@ -435,14 +441,14 @@ function resetFiltres() {
 
 function openApprouver(id, nom) {
     document.getElementById('approuver-nom').textContent = nom;
-    document.getElementById('form-approuver').action = '<?= base_url('absence/approuver/') ?>' + id;
+    document.getElementById('form-approuver').action = '<?= base_url('demande-formation/approuver/') ?>' + id;
     document.getElementById('modal-approuver').classList.add('is-open');
 }
 
-function openRefuser(id, nom) {
-    document.getElementById('refuser-nom').textContent = nom;
-    document.getElementById('form-refuser').action = '<?= base_url('absence/refuser/') ?>' + id;
-    document.getElementById('modal-refuser').classList.add('is-open');
+function openRejeter(id, nom) {
+    document.getElementById('rejeter-nom').textContent = nom;
+    document.getElementById('form-rejeter').action = '<?= base_url('demande-formation/rejeter/') ?>' + id;
+    document.getElementById('modal-rejeter').classList.add('is-open');
 }
 
 function closeModal(id) {

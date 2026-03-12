@@ -158,6 +158,8 @@ $routes->group('', ['filter' => 'auth'], function ($routes) {
     $routes->post('evenement/ajouter-participants/(:num)',       'EvenementController::ajouterParticipants/$1');
     $routes->post('evenement/retirer-participant/(:num)',        'EvenementController::retirerParticipant/$1');
     $routes->post('evenement/notifier-participants/(:num)',      'EvenementController::notifierParticipants/$1');
+    $routes->post('evenement/participer/(:num)',  'EvenementController::participer/$1');
+    $routes->post('evenement/se-retirer/(:num)',  'EvenementController::seRetirer/$1');
 
     // ============================================================
     // NOTIFICATIONS — tous les profils

@@ -3,19 +3,18 @@
 <?= $this->section('css') ?>
 <style>
     :root {
-        --c-primary:        #3A7BD5;
-        --c-primary-pale:   rgba(58,123,213,0.10);
-        --c-primary-border: rgba(58,123,213,0.25);
-        --c-accent:         #5B9BF0;
-        --c-green-pale:    rgba(74,103,65,0.15);
-        --c-green-border:  rgba(74,103,65,0.35);
-        --c-red-pale:      rgba(224,82,82,0.10);
-        --c-red-border:    rgba(224,82,82,0.25);
-        --c-surface:       #1a1a1a;
-        --c-border:        rgba(255,255,255,0.06);
-        --c-text:          rgba(255,255,255,0.85);
-        --c-muted:         rgba(255,255,255,0.35);
-        --c-soft:          rgba(255,255,255,0.55);
+        --e-primary:        #6BAF6B;
+        --e-primary-pale:   rgba(107,175,107,0.10);
+        --e-primary-border: rgba(107,175,107,0.25);
+        --c-green-pale:     rgba(74,103,65,0.15);
+        --c-green-border:   rgba(74,103,65,0.35);
+        --c-red-pale:       rgba(224,82,82,0.10);
+        --c-red-border:     rgba(224,82,82,0.25);
+        --c-surface:        #1a1a1a;
+        --c-border:         rgba(255,255,255,0.06);
+        --c-text:           rgba(255,255,255,0.85);
+        --c-muted:          rgba(255,255,255,0.35);
+        --c-soft:           rgba(255,255,255,0.55);
     }
 
     .form-card {
@@ -30,9 +29,9 @@
 
     .form-card-icon {
         width: 38px; height: 38px; border-radius: 10px;
-        background: var(--c-primary-pale); border: 1px solid var(--c-primary-border);
+        background: var(--e-primary-pale); border: 1px solid var(--e-primary-border);
         display: flex; align-items: center; justify-content: center;
-        color: var(--c-accent); font-size: 0.9rem; flex-shrink: 0;
+        color: var(--e-primary); font-size: 0.9rem; flex-shrink: 0;
     }
 
     .form-card-title    { color: #fff; font-size: 0.92rem; font-weight: 700; margin: 0; }
@@ -46,7 +45,7 @@
         font-size: 0.72rem; font-weight: 600; color: var(--c-soft);
         text-transform: uppercase; letter-spacing: 0.5px;
     }
-    .form-label .req { color: var(--c-accent); margin-left: 2px; }
+    .form-label .req { color: var(--e-primary); margin-left: 2px; }
 
     .input-wrapper { position: relative; }
 
@@ -56,7 +55,7 @@
         padding: 11px 40px 11px 14px; outline: none; transition: border-color 0.2s;
         font-family: 'Segoe UI', sans-serif; width: 100%;
     }
-    .form-control:focus        { border-color: var(--c-primary-border); }
+    .form-control:focus        { border-color: var(--e-primary-border); }
     .form-control::placeholder { color: var(--c-muted); }
 
     .toggle-pwd {
@@ -66,7 +65,7 @@
         color: var(--c-muted); font-size: 0.82rem; padding: 0;
         transition: color 0.2s;
     }
-    .toggle-pwd:hover { color: var(--c-accent); }
+    .toggle-pwd:hover { color: var(--e-primary); }
 
     .strength-bar {
         height: 4px; border-radius: 2px;
@@ -88,13 +87,13 @@
     }
 
     .btn-primary {
-        background: linear-gradient(135deg, var(--c-primary), #2a5ba5);
+        background: linear-gradient(135deg, var(--e-primary), #4a8a4a);
         border: none; color: #fff; font-weight: 700; border-radius: 8px;
         padding: 10px 22px; font-size: 0.82rem; cursor: pointer;
         transition: all 0.2s; display: inline-flex; align-items: center; gap: 7px;
         text-decoration: none;
     }
-    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 5px 18px rgba(58,123,213,0.35); color: #fff; }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 5px 18px rgba(107,175,107,0.3); color: #fff; }
 
     .btn-ghost {
         background: transparent; border: 1px solid var(--c-border);
@@ -127,7 +126,7 @@
 
 <div class="page-header">
     <div>
-        <h1><i class="fas fa-lock me-2" style="color:#3A7BD5;"></i>Changer le mot de passe</h1>
+        <h1><i class="fas fa-lock me-2" style="color:var(--e-primary);"></i>Changer le mot de passe</h1>
         <p>Sécurisez votre compte</p>
     </div>
     <a href="<?= base_url('profil') ?>" class="btn-ghost">
@@ -263,8 +262,8 @@
             { pct: '25%',  color: '#ff6b7a',       text: 'Très faible' },
             { pct: '45%',  color: '#F5A623',        text: 'Faible' },
             { pct: '65%',  color: '#f0c040',        text: 'Moyen' },
-            { pct: '85%',  color: '#5B9BF0',        text: 'Fort' },
-            { pct: '100%', color: '#3A7BD5',        text: 'Très fort' },
+            { pct: '85%',  color: '#7ab86a',        text: 'Fort' },
+            { pct: '100%', color: '#6BAF6B',        text: 'Très fort' },
         ];
 
         var lvl = levels[Math.min(score, 5)];

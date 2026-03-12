@@ -14,16 +14,17 @@ class ProfilUtilisateurController extends BaseController
     }
 
     private function idEmp(): int { return (int) session()->get('id_Emp'); }
+    private function idPfl(): int { return (int) session()->get('id_Pfl'); }
 
-    private function view(string $vue, array $data = [])
+    private function profileView(string $page, array $data = []): string
     {
-        $prefix = match((int) session()->get('id_Pfl')) {
-            1 => 'RH',
-            2 => 'chef',
-            3 => 'employe',
+        $folder = match ($this->idPfl()) {
+            1       => 'rh',
+            2       => 'chef',
+            3       => 'employe',
             default => 'employe',
         };
-        return view($prefix . '/profil/' . $vue, $data);
+        return view("{$folder}/profil/{$page}", $data);
     }
 
     // ══════════════════════════════════════════════════════════
@@ -44,7 +45,7 @@ class ProfilUtilisateurController extends BaseController
             return redirect()->to('dashboard')->with('error', 'Employé introuvable.');
         }
 
-        return $this->view('index', [
+        return $this->profileView('index', [
             'title' => 'Mon profil',
             'emp'   => $emp,
         ]);
@@ -55,9 +56,7 @@ class ProfilUtilisateurController extends BaseController
     // ══════════════════════════════════════════════════════════
     public function password()
     {
-        // employe n'a pas de page password — redirection
-
-        return $this->view('password', [
+        return $this->profileView('password', [
             'title' => 'Changer le mot de passe',
         ]);
     }

@@ -20,6 +20,26 @@ class FormationController extends BaseController
     private function idEmp(): int { return (int) session()->get('id_Emp'); }
     private function idPfl(): int { return (int) session()->get('id_Pfl'); }
 
+    /**
+     * id_Pfl = 1  →  rh/formation/{page}
+     * id_Pfl = 2  →  chef/formation/{page}
+     * id_Pfl = 3  →  employe/formation/{page}
+     *
+     * Utilisé pour index() et show() uniquement.
+     * create / edit / delete → RH only → view('rh/formation/...') direct.
+     */
+    private function profileView(string $page, array $data = []): string
+    {
+        $folder = match ($this->idPfl()) {
+            1       => 'rh',
+            2       => 'chef',
+            3       => 'employe',
+            default => 'employe',
+        };
+
+        return view("{$folder}/formation/{$page}", $data);
+    }
+
     private function getRHIds(): array
     {
         $db = \Config\Database::connect();
@@ -36,12 +56,10 @@ class FormationController extends BaseController
         $idPfl = $this->idPfl();
         $idEmp = $this->idEmp();
 
-        // Toutes les formations du catalogue
         $formations = $db->table('formation')
             ->orderBy('DateDebut_Frm', 'DESC')
             ->get()->getResultArray();
 
-        // Pour chaque formation, compter les inscrits validés
         foreach ($formations as &$f) {
             $f['nb_valides'] = $db->table('s_inscrire')
                 ->where('id_Frm', $f['id_Frm'])
@@ -53,7 +71,6 @@ class FormationController extends BaseController
                 ->whereIn('Stt_Ins', ['inscrit', 'valide'])
                 ->countAllResults();
 
-            // Mon inscription personnelle
             $f['mon_inscription'] = $db->table('s_inscrire')
                 ->where('id_Frm', $f['id_Frm'])
                 ->where('id_Emp', $idEmp)
@@ -66,7 +83,7 @@ class FormationController extends BaseController
         $data['idPfl']      = $idPfl;
         $data['idEmp']      = $idEmp;
 
-        return view('rh/formation/index', $data);
+        return $this->profileView('index', $data);
     }
 
     // ── SHOW ──────────────────────────────────────────────────
@@ -84,12 +101,11 @@ class FormationController extends BaseController
             return redirect()->to('formation')->with('error', 'Formation introuvable.');
         }
 
-        // Participants avec détails
         $participants = $db->table('s_inscrire')
             ->select('s_inscrire.*, employe.Nom_Emp, employe.Prenom_Emp,
                       employe.Email_Emp, direction.Nom_Dir')
-            ->join('employe',   'employe.id_Emp = s_inscrire.id_Emp',       'left')
-            ->join('direction', 'direction.id_Dir = employe.id_Dir',        'left')
+            ->join('employe',   'employe.id_Emp = s_inscrire.id_Emp',  'left')
+            ->join('direction', 'direction.id_Dir = employe.id_Dir',   'left')
             ->where('s_inscrire.id_Frm', $id)
             ->orderBy('s_inscrire.Stt_Ins')
             ->get()->getResultArray();
@@ -98,13 +114,11 @@ class FormationController extends BaseController
         $nbInscrits = count(array_filter($participants, fn($p) => $p['Stt_Ins'] === 'inscrit'));
         $nbAnnules  = count(array_filter($participants, fn($p) => $p['Stt_Ins'] === 'annule'));
 
-        // Mon inscription
         $monInscription = $db->table('s_inscrire')
             ->where('id_Frm', $id)
             ->where('id_Emp', $idEmp)
             ->get()->getRowArray();
 
-        // Demande liée à cette formation (si existe)
         $demande = $db->table('demande_formation')
             ->where('id_Frm', $id)
             ->orderBy('DateDemande', 'DESC')
@@ -121,10 +135,10 @@ class FormationController extends BaseController
         $data['idPfl']          = $idPfl;
         $data['idEmp']          = $idEmp;
 
-        return view('rh/formation/show', $data);
+        return $this->profileView('show', $data);
     }
 
-    // ── CREATE ────────────────────────────────────────────────
+    // ── CREATE — RH uniquement ────────────────────────────────
     public function create()
     {
         if ($this->idPfl() != 1) {
@@ -133,7 +147,6 @@ class FormationController extends BaseController
 
         $db = \Config\Database::connect();
 
-        // Nombre total d'employés par direction (pour l'option "Tous")
         $directions = $db->table('direction')
             ->select('direction.id_Dir, direction.Nom_Dir,
                       COUNT(employe.id_Emp) AS nb_employes')
@@ -177,15 +190,12 @@ class FormationController extends BaseController
                              ->with('error', 'La date de fin doit être après la date de début.');
         }
 
-        // Capacité : "tous" ou valeur manuelle
         $optionCapacite = $this->request->getPost('option_capacite');
         $idDir          = (int)$this->request->getPost('id_Dir_capacite');
 
         if ($optionCapacite === 'tous' && $idDir) {
             $db       = \Config\Database::connect();
-            $capacite = $db->table('employe')
-                ->where('id_Dir', $idDir)
-                ->countAllResults();
+            $capacite = $db->table('employe')->where('id_Dir', $idDir)->countAllResults();
         } else {
             $capacite = (int)$this->request->getPost('Capacite_Frm');
         }
@@ -220,7 +230,7 @@ class FormationController extends BaseController
                          ->with('success', 'Formation créée avec succès.');
     }
 
-    // ── EDIT ──────────────────────────────────────────────────
+    // ── EDIT — RH uniquement ──────────────────────────────────
     public function edit($id)
     {
         if ($this->idPfl() != 1) {
@@ -235,9 +245,9 @@ class FormationController extends BaseController
         }
 
         $formation['nb_valides'] = $db->table('s_inscrire')
-    ->where('id_Frm', $id)
-    ->where('Stt_Ins', 'valide')
-    ->countAllResults();
+            ->where('id_Frm', $id)
+            ->where('Stt_Ins', 'valide')
+            ->countAllResults();
 
         $directions = $db->table('direction')
             ->select('direction.id_Dir, direction.Nom_Dir,
@@ -294,9 +304,7 @@ class FormationController extends BaseController
         $idDir          = (int)$this->request->getPost('id_Dir_capacite');
 
         if ($optionCapacite === 'tous' && $idDir) {
-            $capacite = $db->table('employe')
-                ->where('id_Dir', $idDir)
-                ->countAllResults();
+            $capacite = $db->table('employe')->where('id_Dir', $idDir)->countAllResults();
         } else {
             $capacite = (int)$this->request->getPost('Capacite_Frm');
         }
@@ -306,10 +314,8 @@ class FormationController extends BaseController
                              ->with('error', 'La capacité doit être supérieure à 0.');
         }
 
-        // Vérifier que la nouvelle capacité n'est pas inférieure aux inscrits validés
         $nbValides = $db->table('s_inscrire')
-            ->where('id_Frm', $id)
-            ->where('Stt_Ins', 'valide')
+            ->where('id_Frm', $id)->where('Stt_Ins', 'valide')
             ->countAllResults();
 
         if ($capacite < $nbValides) {
@@ -339,7 +345,7 @@ class FormationController extends BaseController
                          ->with('success', 'Formation modifiée avec succès.');
     }
 
-    // ── DELETE ────────────────────────────────────────────────
+    // ── DELETE — RH uniquement ────────────────────────────────
     public function delete($id)
     {
         if ($this->idPfl() != 1) {
@@ -353,10 +359,8 @@ class FormationController extends BaseController
             return redirect()->to('formation')->with('error', 'Formation introuvable.');
         }
 
-        // Empêcher la suppression si des participants sont validés
         $nbValides = $db->table('s_inscrire')
-            ->where('id_Frm', $id)
-            ->where('Stt_Ins', 'valide')
+            ->where('id_Frm', $id)->where('Stt_Ins', 'valide')
             ->countAllResults();
 
         if ($nbValides > 0) {
@@ -364,10 +368,7 @@ class FormationController extends BaseController
                              ->with('error', 'Impossible de supprimer une formation avec des participants confirmés (' . $nbValides . ').');
         }
 
-        // Supprimer les inscriptions liées
         $db->table('s_inscrire')->where('id_Frm', $id)->delete();
-
-        // Supprimer la formation
         $db->table('formation')->where('id_Frm', $id)->delete();
 
         $this->log->insert([

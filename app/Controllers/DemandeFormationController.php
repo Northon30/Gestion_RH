@@ -20,6 +20,27 @@ class DemandeFormationController extends BaseController
     private function idEmp(): int { return (int) session()->get('id_Emp'); }
     private function idPfl(): int { return (int) session()->get('id_Pfl'); }
 
+    /**
+     * id_Pfl = 1  →  rh/formation/{page}
+     * id_Pfl = 2  →  chef/formation/{page}
+     * id_Pfl = 3  →  employe/formation/{page}
+     *
+     * Les pages demande_* sont dans le même dossier formation/ de chaque profil.
+     * Les actions workflow (approuver, rejeter, validerRH, rejeterRH, selectionner)
+     * sont réservées à un profil précis → pas de profileView(), redirect() direct si accès refusé.
+     */
+    private function profileView(string $page, array $data = []): string
+    {
+        $folder = match ($this->idPfl()) {
+            1       => 'rh',
+            2       => 'chef',
+            3       => 'employe',
+            default => 'employe',
+        };
+
+        return view("{$folder}/formation/{$page}", $data);
+    }
+
     private function getRHIds(): array
     {
         $db = \Config\Database::connect();
@@ -77,14 +98,20 @@ class DemandeFormationController extends BaseController
             ->join('direction', 'direction.id_Dir = employe.id_Dir',           'left')
             ->join('formation', 'formation.id_Frm = demande_formation.id_Frm', 'left');
 
+        if ($idPfl == 3) {
+            // Employé : uniquement ses propres demandes
+            $query->where('demande_formation.id_Emp', $idEmp);
+        }
+
         if ($idPfl == 2) {
+            // Chef : demandes de sa direction
             $query->where('employe.id_Dir', $idDir);
         }
 
         $demandes   = $query->orderBy('demande_formation.DateDemande', 'DESC')->get()->getResultArray();
         $directions = $db->table('direction')->orderBy('Nom_Dir')->get()->getResultArray();
 
-        return view('rh/formation/demande_index', [
+        return $this->profileView('demande_index', [
             'title'      => 'Demandes de formation',
             'demandes'   => $demandes,
             'directions' => $directions,
@@ -118,7 +145,6 @@ class DemandeFormationController extends BaseController
 
         $db = \Config\Database::connect();
 
-        // Participants inscrits (si formation liée)
         $participants = [];
         if (!empty($demande['id_Frm'])) {
             $participants = $db->table('s_inscrire')
@@ -130,8 +156,7 @@ class DemandeFormationController extends BaseController
                 ->get()->getResultArray();
         }
 
-        // Employés de la direction pour sélection RH
-        // Visible uniquement si : RH + statut valide_rh + formation catalogue liée
+        // Visible uniquement RH + statut valide_rh + formation liée
         $employes_direction = [];
         if ($idPfl == 1 && $demande['Statut_DFrm'] === 'valide_rh' && !empty($demande['id_Frm'])) {
             $employes_direction = $db->table('employe')
@@ -145,7 +170,7 @@ class DemandeFormationController extends BaseController
 
         $nbInscrits = count(array_filter($participants, fn($p) => $p['Stt_Ins'] === 'valide'));
 
-        return view('rh/formation/demande_show', [
+        return $this->profileView('demande_show', [
             'title'              => 'Détail demande de formation',
             'demande'            => $demande,
             'participants'       => $participants,
@@ -174,7 +199,7 @@ class DemandeFormationController extends BaseController
         }
         unset($f);
 
-        return view('rh/formation/demande_create', [
+        return $this->profileView('demande_create', [
             'title'      => 'Nouvelle demande de formation',
             'formations' => $formations,
             'idPfl'      => $this->idPfl(),
@@ -186,7 +211,7 @@ class DemandeFormationController extends BaseController
     {
         $idPfl  = $this->idPfl();
         $idEmp  = $this->idEmp();
-        $source = $this->request->getPost('_source'); // '_source' — nom dans la vue
+        $source = $this->request->getPost('_source');
 
         $rules = [
             'Type_DFrm' => 'required',
@@ -214,9 +239,9 @@ class DemandeFormationController extends BaseController
         }
 
         $idFrm           = ($source === 'catalogue') ? (int)$this->request->getPost('id_Frm') : null;
-        $statutInitial   = ($idPfl == 2) ? 'approuve'           : 'en_attente';
-        $idValidDir      = ($idPfl == 2) ? $idEmp               : null;
-        $dateDecisionDir = ($idPfl == 2) ? date('Y-m-d H:i:s')  : null;
+        $statutInitial   = ($idPfl == 2) ? 'approuve'          : 'en_attente';
+        $idValidDir      = ($idPfl == 2) ? $idEmp              : null;
+        $dateDecisionDir = ($idPfl == 2) ? date('Y-m-d H:i:s') : null;
 
         $db = \Config\Database::connect();
         $db->table('demande_formation')->insert([
@@ -304,7 +329,7 @@ class DemandeFormationController extends BaseController
         }
         unset($f);
 
-        return view('rh/formation/demande_edit', [
+        return $this->profileView('demande_edit', [
             'title'      => 'Modifier la demande',
             'demande'    => $demande,
             'formations' => $formations,
@@ -517,7 +542,7 @@ class DemandeFormationController extends BaseController
                 'Description_Frm' => $demande['Description_Libre'],
                 'DateDebut_Frm'   => $demande['DateDebut_Libre'],
                 'DateFin_Frm'     => $demande['DateFin_Libre'] ?? $demande['DateDebut_Libre'],
-                'Lieu_Frm'        => $demande['Lieu_Libre']    ?? 'À définir',
+                'Lieu_Frm'        => $demande['Lieu_Libre']      ?? 'À définir',
                 'Formateur_Frm'   => $demande['Formateur_Libre'] ?? 'À définir',
                 'Capacite_Frm'    => 0,
             ]);
@@ -598,7 +623,7 @@ class DemandeFormationController extends BaseController
     }
 
     // ══════════════════════════════════════════════════════════
-    // SÉLECTION PARTICIPANTS (RH)
+    // SÉLECTION PARTICIPANTS — RH uniquement
     // ══════════════════════════════════════════════════════════
 
     public function selectionner($id)
@@ -621,7 +646,6 @@ class DemandeFormationController extends BaseController
             return redirect()->back()->with('error', 'Veuillez sélectionner au moins un participant.');
         }
 
-        // Mettre à jour la capacité
         $capacite = count($selectedIds);
         $db->table('formation')->where('id_Frm', $idFrm)->update(['Capacite_Frm' => $capacite]);
 
@@ -668,7 +692,7 @@ class DemandeFormationController extends BaseController
     }
 
     // ══════════════════════════════════════════════════════════
-    // RÉPONSE PARTICIPANT
+    // RÉPONSE PARTICIPANT — Employé / Chef
     // ══════════════════════════════════════════════════════════
 
     public function accepter($idIns)
