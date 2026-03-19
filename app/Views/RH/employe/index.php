@@ -221,7 +221,14 @@
     .table-wrapper {
         background: var(--c-surface);
         border: 1px solid var(--c-border);
-        border-radius: 12px; overflow: hidden;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    /* Scroll horizontal sur mobile */
+    .table-scroll {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
     }
 
     .table-head-bar {
@@ -237,7 +244,7 @@
 
     .table-head-bar h6 i { color: var(--c-orange); }
 
-    .emp-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    .emp-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; min-width: 680px; }
 
     .emp-table thead th {
         padding: 9px 14px; font-size: 0.68rem; font-weight: 700;
@@ -317,6 +324,7 @@
         background: rgba(0,0,0,0.65); z-index: 1040;
         backdrop-filter: blur(3px);
         align-items: center; justify-content: center;
+        padding: 16px;
     }
 
     .modal-overlay.show { display: flex; }
@@ -327,6 +335,8 @@
         position: relative; z-index: 1051;
         box-shadow: 0 20px 60px rgba(0,0,0,0.5);
         animation: modal-in 0.2s ease;
+        max-height: 90vh;
+        overflow-y: auto;
     }
 
     .modal-box.sm { max-width: 390px; }
@@ -468,7 +478,7 @@
 
     .btn-danger:hover { transform: translateY(-1px); box-shadow: 0 5px 18px rgba(192,57,43,0.35); }
 
-    /* Dropdown export */
+    /* ===== DROPDOWN EXPORT ===== */
     .export-dropdown { position: relative; display: inline-block; }
 
     .export-menu {
@@ -481,7 +491,7 @@
         border-radius: 10px;
         padding: 6px;
         min-width: 180px;
-        z-index: 100;
+        z-index: 200;
         box-shadow: 0 10px 30px rgba(0,0,0,0.4);
         animation: modal-in 0.15s ease;
     }
@@ -515,9 +525,84 @@
         line-height: 1.4;
     }
 
-    @media (max-width: 1100px) { .filter-grid { grid-template-columns: 1fr 1fr 1fr 1fr; } }
-    @media (max-width: 992px)  { .stat-strip { grid-template-columns: repeat(2, 1fr); } .filter-grid { grid-template-columns: 1fr 1fr 1fr; } }
-    @media (max-width: 576px)  { .stat-strip { grid-template-columns: repeat(2, 1fr); } .filter-grid { grid-template-columns: 1fr 1fr; } }
+    /* ===== PAGE HEADER ===== */
+    .page-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 1100px) {
+        .filter-grid { grid-template-columns: 1fr 1fr 1fr 1fr; }
+    }
+
+    @media (max-width: 992px) {
+        .stat-strip  { grid-template-columns: repeat(2, 1fr); }
+        .filter-grid { grid-template-columns: 1fr 1fr 1fr; }
+
+        .page-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .page-header > div:last-child {
+            width: 100%;
+            justify-content: flex-start;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .filter-grid { grid-template-columns: 1fr 1fr; }
+
+        .table-head-bar {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .export-menu {
+            right: auto;
+            left: 0;
+        }
+
+        .modal-box {
+            padding: 18px;
+            border-radius: 12px;
+        }
+
+        .modal-btns {
+            flex-direction: column;
+        }
+
+        .modal-btns > * {
+            width: 100%;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .stat-strip { grid-template-columns: repeat(2, 1fr); }
+        .filter-grid { grid-template-columns: 1fr; }
+
+        .stat-pill-val   { font-size: 1.1rem; }
+        .stat-pill-label { font-size: 0.62rem; }
+        .stat-pill       { padding: 10px 12px; gap: 8px; }
+
+        .table-foot {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .btn-orange,
+        .btn-green,
+        .btn-outline-blue { font-size: 0.75rem; padding: 7px 11px; }
+
+        .modal-box { padding: 16px; }
+
+        .drop-zone { padding: 20px 14px; }
+    }
 </style>
 <?= $this->endSection() ?>
 

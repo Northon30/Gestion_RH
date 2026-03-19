@@ -573,7 +573,7 @@
             <?php if (!empty($mesFormations)): ?>
                 <?php foreach ($mesFormations as $mf): ?>
                 <div class="formation-item">
-                    <div class="formation-title"><?= esc($mf['Description_Frm']) ?></div>
+                    <div class="formation-title"><?= esc($mf['Titre_Frm']) ?></div>
                     <div class="formation-meta">
                         <span><i class="fas fa-calendar"></i><?= date('d/m/Y', strtotime($mf['DateDebut_Frm'])) ?></span>
                         <span><i class="fas fa-map-marker-alt"></i><?= esc($mf['Lieu_Frm']) ?></span>

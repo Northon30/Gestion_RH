@@ -30,14 +30,55 @@ class CreateCongeTable extends Migration
             ],
             'Statut_Cge' => [
                 'type'       => 'ENUM',
-                'constraint' => ['en_attente', 'approuve', 'rejete'],
+                'constraint' => [
+                    'en_attente',
+                    'approuve_chef',
+                    'rejete_chef',
+                    'valide_rh',
+                    'rejete_rh',
+                    'expire',
+                ],
                 'default'    => 'en_attente',
                 'null'       => false,
             ],
             'DateDemande_Cge' => [
-                'type'    => 'DATE',
-                'null'    => false,
+                'type' => 'DATE',
+                'null' => false,
             ],
+
+            // ── Décision Chef de Direction ─────────────────────
+            'CommentaireDir_Cge' => [
+                'type' => 'TEXT',
+                'null' => true,
+            ],
+            'DateDecisionDir_Cge' => [
+                'type' => 'DATETIME',
+                'null' => true,
+            ],
+            'id_Emp_ValidDir' => [
+                'type'       => 'INT',
+                'constraint' => 11,
+                'unsigned'   => true,
+                'null'       => true,
+            ],
+
+            // ── Décision RH ───────────────────────────────────
+            'CommentaireRH_Cge' => [
+                'type' => 'TEXT',
+                'null' => true,
+            ],
+            'DateValidationRH_Cge' => [
+                'type' => 'DATETIME',
+                'null' => true,
+            ],
+            'id_Emp_ValidRH' => [
+                'type'       => 'INT',
+                'constraint' => 11,
+                'unsigned'   => true,
+                'null'       => true,
+            ],
+
+            // ── Clés étrangères ───────────────────────────────
             'id_Emp' => [
                 'type'       => 'INT',
                 'constraint' => 11,
@@ -53,8 +94,10 @@ class CreateCongeTable extends Migration
         ]);
 
         $this->forge->addPrimaryKey('id_Cge');
-        $this->forge->addForeignKey('id_Emp', 'employe', 'id_Emp', 'CASCADE', 'CASCADE');
-        $this->forge->addForeignKey('id_Tcg', 'type_conge', 'id_Tcg', 'CASCADE', 'CASCADE');
+        $this->forge->addForeignKey('id_Emp',         'employe',     'id_Emp', 'CASCADE',  'CASCADE');
+        $this->forge->addForeignKey('id_Tcg',         'type_conge',  'id_Tcg', 'CASCADE',  'CASCADE');
+        $this->forge->addForeignKey('id_Emp_ValidDir', 'employe',    'id_Emp', 'SET NULL', 'CASCADE');
+        $this->forge->addForeignKey('id_Emp_ValidRH',  'employe',    'id_Emp', 'SET NULL', 'CASCADE');
         $this->forge->createTable('conge', false, ['ENGINE' => 'InnoDB']);
     }
 

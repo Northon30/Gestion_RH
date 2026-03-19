@@ -18,8 +18,11 @@
     }
 
     .form-card {
-        background: var(--c-surface); border: 1px solid var(--c-border);
-        border-radius: 14px; padding: 28px 30px; margin-bottom: 16px;
+        background: var(--c-surface);
+        border: 1px solid var(--c-border);
+        border-radius: 14px;
+        padding: 22px 24px;
+        margin-bottom: 16px;
     }
 
     .form-card-title {
@@ -65,16 +68,17 @@
     .form-textarea-dark::placeholder { color: var(--c-muted); }
     .form-select-dark option { background: #1a1a1a; }
 
-    .form-hint   { font-size: 0.68rem; color: var(--c-muted); margin-top: 2px; }
+    .form-control-dark.is-invalid,
+    .form-select-dark.is-invalid { border-color: rgba(224,82,82,0.5); }
+
+    .form-hint { font-size: 0.68rem; color: var(--c-muted); margin-top: 2px; }
 
     .field-error {
         font-size: 0.7rem; color: #ff8080; margin-top: 2px;
         display: flex; align-items: center; gap: 4px;
     }
 
-    .form-control-dark.is-invalid,
-    .form-select-dark.is-invalid { border-color: rgba(224,82,82,0.5); }
-
+    /* ── Alertes ── */
     .alert-error-dark {
         background: var(--c-red-pale); border: 1px solid var(--c-red-border);
         border-radius: 10px; padding: 12px 16px; color: #ff8080;
@@ -84,14 +88,15 @@
     .alert-error-dark ul { margin: 6px 0 0 0; padding-left: 18px; }
     .alert-error-dark li { margin-bottom: 2px; font-size: 0.78rem; }
 
-    /* Info lecture seule */
+    /* ── Champ lecture seule ── */
     .readonly-field {
         background: rgba(255,255,255,0.02); border: 1px solid var(--c-border);
         border-radius: 8px; padding: 9px 12px; height: 40px;
         color: var(--c-muted); font-size: 0.82rem;
-        display: flex; align-items: center;
+        display: flex; align-items: center; gap: 8px;
     }
 
+    /* ── Bannière info ── */
     .info-banner {
         background: rgba(245,166,35,0.06); border: 1px solid var(--c-orange-border);
         border-radius: 10px; padding: 11px 16px; margin-bottom: 16px;
@@ -99,17 +104,18 @@
         display: flex; align-items: center; gap: 10px;
     }
 
-    /* Durée */
+    /* ── Durée ── */
     .duree-preview {
         background: var(--c-orange-pale); border: 1px solid var(--c-orange-border);
         border-radius: 8px; padding: 8px 14px;
         display: none; align-items: center; gap: 8px;
-        font-size: 0.8rem; color: var(--c-orange); font-weight: 600; margin-top: 8px;
+        font-size: 0.8rem; color: var(--c-orange); font-weight: 600;
+        margin-top: 8px;
     }
 
     .duree-preview.visible { display: inline-flex; }
 
-    /* Boutons */
+    /* ── Boutons ── */
     .btn-orange {
         background: linear-gradient(135deg, var(--c-orange), #d4891a);
         border: none; color: #111; font-weight: 700; border-radius: 8px;
@@ -130,18 +136,30 @@
 
     .btn-ghost:hover { background: rgba(255,255,255,0.04); color: var(--c-text); }
 
-    .form-actions { display: flex; align-items: center; justify-content: flex-end; gap: 10px; padding-top: 8px; }
+    .form-actions {
+        display: flex; align-items: center;
+        justify-content: flex-end; gap: 10px;
+        padding-top: 8px; flex-wrap: wrap;
+    }
 
-    @media (max-width: 768px) { .form-grid-2 { grid-template-columns: 1fr; } }
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+        .form-card    { padding: 16px; }
+        .form-grid-2  { grid-template-columns: 1fr; }
+        .page-header  { flex-direction: column; align-items: flex-start; gap: 10px; }
+        .page-header .btn-ghost { width: 100%; justify-content: center; }
+    }
+
+    @media (max-width: 480px) {
+        .form-actions { flex-direction: column; }
+        .form-actions > * { width: 100%; justify-content: center; }
+    }
 </style>
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
 
-<?php
-$a   = $absence;
-$old = fn($k, $d = '') => old($k, $d ?? $a[$k] ?? '');
-?>
+<?php $a = $absence; ?>
 
 <div class="page-header">
     <div>
@@ -154,9 +172,13 @@ $old = fn($k, $d = '') => old($k, $d ?? $a[$k] ?? '');
 </div>
 
 <div class="info-banner">
-    <i class="fas fa-info-circle"></i>
-    Seules les absences <strong>en attente</strong> peuvent être modifiées.
-    Une fois traitée par le RH, cette action n'est plus disponible.
+    <i class="fas fa-info-circle" style="flex-shrink:0;"></i>
+    <?php if (($idPfl ?? 0) == 2 && $a['Statut_Abs'] === 'approuve_chef'): ?>
+        Votre absence est <strong>auto-approuvée</strong> et modifiable tant que le RH n'a pas encore statué.
+    <?php else: ?>
+        Seules les absences <strong>en attente</strong> peuvent être modifiées.
+        Une fois traitée, cette action n'est plus disponible.
+    <?php endif; ?>
 </div>
 
 <?php if (session()->getFlashdata('error')): ?>
@@ -181,7 +203,7 @@ $old = fn($k, $d = '') => old($k, $d ?? $a[$k] ?? '');
 <form action="<?= base_url('absence/update/' . $a['id_Abs']) ?>" method="POST">
     <?= csrf_field() ?>
 
-    <!-- Carte 1 : Identité (lecture seule) -->
+    <!-- ── Carte 1 : Demandeur (lecture seule) ── -->
     <div class="form-card">
         <div class="form-card-title">
             <i class="fas fa-user"></i> Demandeur
@@ -190,26 +212,27 @@ $old = fn($k, $d = '') => old($k, $d ?? $a[$k] ?? '');
             <div class="form-group">
                 <label class="form-label">Employé</label>
                 <div class="readonly-field">
-                    <i class="fas fa-lock" style="font-size:0.65rem;margin-right:8px;color:var(--c-muted);"></i>
-                    <?= esc(session()->get('prenom') . ' ' . session()->get('nom')) ?>
+                    <i class="fas fa-lock" style="font-size:0.65rem;color:var(--c-muted);flex-shrink:0;"></i>
+                    <?= esc(($employe['Nom_Emp'] ?? '') . ' ' . ($employe['Prenom_Emp'] ?? '')) ?>
                 </div>
             </div>
             <div class="form-group">
                 <label class="form-label">Date de déclaration</label>
                 <div class="readonly-field">
-                    <i class="fas fa-lock" style="font-size:0.65rem;margin-right:8px;color:var(--c-muted);"></i>
+                    <i class="fas fa-lock" style="font-size:0.65rem;color:var(--c-muted);flex-shrink:0;"></i>
                     <?= date('d/m/Y', strtotime($a['DateDemande_Abs'])) ?>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Carte 2 : Informations -->
+    <!-- ── Carte 2 : Informations ── -->
     <div class="form-card">
         <div class="form-card-title">
             <i class="fas fa-info-circle"></i> Informations de l'absence
         </div>
         <div class="form-grid-2">
+
             <div class="form-group">
                 <label class="form-label">Type d'absence <span class="req">*</span></label>
                 <select name="id_TAbs" class="form-select-dark">
@@ -227,16 +250,19 @@ $old = fn($k, $d = '') => old($k, $d ?? $a[$k] ?? '');
 
             <div class="form-group">
                 <label class="form-label">Date de début <span class="req">*</span></label>
-                <input type="date" name="DateDebut_Abs" class="form-control-dark"
-                       id="date-debut"
+                <input type="date" name="DateDebut_Abs" id="date-debut"
+                       class="form-control-dark"
                        value="<?= old('DateDebut_Abs', $a['DateDebut_Abs']) ?>"
                        onchange="calcDuree()">
             </div>
 
             <div class="form-group">
-                <label class="form-label">Date de fin</label>
-                <input type="date" name="DateFin_Abs" class="form-control-dark"
-                       id="date-fin"
+                <label class="form-label">
+                    Date de fin
+                    <span style="color:var(--c-muted);font-weight:400;text-transform:none;">(optionnel)</span>
+                </label>
+                <input type="date" name="DateFin_Abs" id="date-fin"
+                       class="form-control-dark"
                        value="<?= old('DateFin_Abs', $a['DateFin_Abs'] ?? '') ?>"
                        onchange="calcDuree()">
                 <div class="form-hint">Laisser vide si durée inconnue.</div>
@@ -245,10 +271,11 @@ $old = fn($k, $d = '') => old($k, $d ?? $a[$k] ?? '');
                     <span id="duree-texte"></span>
                 </div>
             </div>
+
         </div>
     </div>
 
-    <!-- Carte 3 : Motif -->
+    <!-- ── Carte 3 : Motif ── -->
     <div class="form-card">
         <div class="form-card-title">
             <i class="fas fa-file-alt"></i> Motif et rapport
@@ -257,9 +284,10 @@ $old = fn($k, $d = '') => old($k, $d ?? $a[$k] ?? '');
             <div class="form-group">
                 <label class="form-label">Motif</label>
                 <input type="text" name="Motif_Abs" class="form-control-dark"
-                       placeholder="Motif court"
+                       placeholder="Ex : Rendez-vous médical"
                        value="<?= esc(old('Motif_Abs', $a['Motif_Abs'] ?? '')) ?>"
                        maxlength="255">
+                <div class="form-hint">Résumé court et explicite.</div>
             </div>
             <div class="form-group">
                 <label class="form-label">Rapport / Détails</label>

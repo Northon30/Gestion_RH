@@ -16,14 +16,19 @@ class CreateSInscrireTable extends Migration
                 'auto_increment' => true,
             ],
             'Dte_Ins' => [
-                'type'    => 'DATE',
-                'null'    => false,
+                'type' => 'DATE',
+                'null' => false,
             ],
             'Stt_Ins' => [
                 'type'       => 'ENUM',
-                'constraint' => ['inscrit', 'valide', 'annule'],
-                'default'    => 'inscrit',
-                'null'       => false,
+                'constraint' => [
+                    'invite',   // invitation envoyée par le RH, en attente de réponse
+                    'inscrit',  // inscrit (libre ou invitation acceptée)
+                    'valide',   // participation confirmée par le Chef après formation
+                    'annule',   // invitation refusée ou désinscription
+                ],
+                'default' => 'inscrit',
+                'null'    => false,
             ],
             'id_Emp' => [
                 'type'       => 'INT',
@@ -40,7 +45,7 @@ class CreateSInscrireTable extends Migration
         ]);
 
         $this->forge->addPrimaryKey('id_Ins');
-        $this->forge->addForeignKey('id_Emp', 'employe', 'id_Emp', 'CASCADE', 'CASCADE');
+        $this->forge->addForeignKey('id_Emp', 'employe',  'id_Emp', 'CASCADE', 'CASCADE');
         $this->forge->addForeignKey('id_Frm', 'formation', 'id_Frm', 'CASCADE', 'CASCADE');
         $this->forge->createTable('s_inscrire', false, ['ENGINE' => 'InnoDB']);
     }

@@ -24,7 +24,7 @@
     /* ===== STATS ===== */
     .stat-strip {
         display: grid;
-        grid-template-columns: repeat(5, 1fr);
+        grid-template-columns: repeat(6, 1fr);
         gap: 10px;
         margin-bottom: 18px;
     }
@@ -45,11 +45,12 @@
         font-size: 0.8rem; flex-shrink: 0;
     }
 
-    .sp-orange { background: var(--c-orange-pale);  color: var(--c-orange); }
-    .sp-yellow { background: var(--c-yellow-pale);  color: #ffc107; }
-    .sp-blue   { background: var(--c-blue-pale);    color: #5B9BF0; }
-    .sp-green  { background: var(--c-green-pale);   color: #7ab86a; }
-    .sp-red    { background: var(--c-red-pale);     color: #ff8080; }
+    .sp-orange { background: var(--c-orange-pale);       color: var(--c-orange); }
+    .sp-yellow { background: var(--c-yellow-pale);       color: #ffc107; }
+    .sp-blue   { background: var(--c-blue-pale);         color: #5B9BF0; }
+    .sp-green  { background: var(--c-green-pale);        color: #7ab86a; }
+    .sp-red    { background: var(--c-red-pale);          color: #ff8080; }
+    .sp-grey   { background: rgba(150,150,150,0.10);     color: #888; }
 
     .stat-pill-val   { font-size: 1.3rem; font-weight: 800; color: #fff; line-height: 1; }
     .stat-pill-label { font-size: 0.68rem; color: var(--c-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
@@ -73,7 +74,7 @@
         background: var(--c-surface);
         border: 1px solid var(--c-border);
         border-radius: 12px; padding: 6px;
-        margin-bottom: 16px;
+        margin-bottom: 16px; flex-wrap: wrap;
     }
 
     .main-tab-btn {
@@ -272,11 +273,12 @@
         font-size: 0.67rem; font-weight: 700; white-space: nowrap;
     }
 
-    .bs-attente       { background: var(--c-yellow-pale);  border: 1px solid var(--c-yellow-border); color: #ffc107; }
-    .bs-approuve-chef { background: var(--c-blue-pale);    border: 1px solid var(--c-blue-border);   color: #5B9BF0; }
-    .bs-rejete-chef   { background: var(--c-red-pale);     border: 1px solid var(--c-red-border);    color: #ff8080; }
-    .bs-valide-rh     { background: var(--c-green-pale);   border: 1px solid var(--c-green-border);  color: #7ab86a; }
-    .bs-rejete-rh     { background: var(--c-red-pale);     border: 1px solid var(--c-red-border);    color: #ff8080; }
+    .bs-attente       { background: var(--c-yellow-pale);       border: 1px solid var(--c-yellow-border); color: #ffc107; }
+    .bs-approuve-chef { background: var(--c-blue-pale);         border: 1px solid var(--c-blue-border);   color: #5B9BF0; }
+    .bs-rejete-chef   { background: var(--c-red-pale);          border: 1px solid var(--c-red-border);    color: #ff8080; }
+    .bs-valide-rh     { background: var(--c-green-pale);        border: 1px solid var(--c-green-border);  color: #7ab86a; }
+    .bs-rejete-rh     { background: var(--c-red-pale);          border: 1px solid var(--c-red-border);    color: #ff8080; }
+    .bs-expire        { background: rgba(150,150,150,0.10);     border: 1px solid rgba(150,150,150,0.25); color: #888; }
 
     .statut-dot { width: 5px; height: 5px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
 
@@ -364,14 +366,32 @@
     .btn-danger:hover { transform: translateY(-1px); box-shadow: 0 5px 18px rgba(192,57,43,0.35); }
 
     @media (max-width: 992px) {
-        .stat-strip { grid-template-columns: repeat(3, 1fr); }
-        .filter-row { grid-template-columns: 1fr 1fr 1fr; }
+        .stat-strip   { grid-template-columns: repeat(3, 1fr); }
+        .filter-row   { grid-template-columns: 1fr 1fr 1fr; }
         .filter-row-2 { grid-template-columns: 1fr 1fr; }
     }
 
-    @media (max-width: 576px) {
-        .stat-strip { grid-template-columns: repeat(2, 1fr); }
+    @media (max-width: 768px) {
+        .filter-row   { grid-template-columns: 1fr 1fr; }
+        .filter-row-2 { grid-template-columns: 1fr 1fr; }
+        .table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .conge-table   { min-width: 650px; }
+        .solde-banner  { gap: 10px; }
+        .solde-sep     { display: none; }
+        .page-header   { flex-direction: column; align-items: flex-start; gap: 10px; }
     }
+
+    @media (max-width: 576px) {
+        .stat-strip   { grid-template-columns: repeat(2, 1fr); }
+        .filter-row   { grid-template-columns: 1fr; }
+        .filter-row-2 { grid-template-columns: 1fr; }
+        .conge-table thead th:nth-child(7), .conge-table tbody td:nth-child(7) { display: none; }
+        .conge-table thead th:nth-child(8), .conge-table tbody td:nth-child(8) { display: none; }
+        .conge-table { min-width: 420px; }
+        .main-tabs    { flex-direction: column; }
+        .main-tab-btn { width: 100%; justify-content: space-between; }
+    }
+
 </style>
 <?= $this->endSection() ?>
 
@@ -381,25 +401,33 @@
 $idPfl = $idPfl ?? session()->get('id_Pfl');
 $idEmp = $idEmp ?? session()->get('id_Emp');
 
-// Séparer mes demandes / toutes les demandes
 $mesConges  = array_values(array_filter($conges, fn($c) => $c['id_Emp'] == $idEmp));
-$tousConges = $conges; // déjà filtrés par profil dans le controller
+$tousConges = $conges;
 
-// Stats globales (sur tout ce qu'il voit)
+// Stats globales
 $total        = count($tousConges);
 $enAttente    = count(array_filter($tousConges, fn($c) => $c['Statut_Cge'] === 'en_attente'));
 $approuveChef = count(array_filter($tousConges, fn($c) => $c['Statut_Cge'] === 'approuve_chef'));
 $valideRH     = count(array_filter($tousConges, fn($c) => $c['Statut_Cge'] === 'valide_rh'));
-$rejetes      = count(array_filter($tousConges, fn($c) => in_array($c['Statut_Cge'], ['rejete_chef','rejete_rh'])));
+$rejetes      = count(array_filter($tousConges, fn($c) => in_array($c['Statut_Cge'], ['rejete_chef', 'rejete_rh'])));
+$expires      = count(array_filter($tousConges, fn($c) => $c['Statut_Cge'] === 'expire'));
 
 // Solde
 $solde = null;
-if (in_array($idPfl, [1, 2, 3])) {
-    $db    = \Config\Database::connect();
-    $solde = $db->table('solde_conge')
-                ->where('id_Emp', $idEmp)
-                ->where('Annee_Sld', date('Y'))
-                ->get()->getRowArray();
+$db    = \Config\Database::connect();
+$solde = $db->table('solde_conge')
+            ->where('id_Emp', $idEmp)
+            ->where('Annee_Sld', date('Y'))
+            ->get()->getRowArray();
+
+// Helper peutModifier (cohérent avec le contrôleur)
+function peutModifierConge(array $c, int $idEmp, int $idPfl): bool
+{
+    if ($c['id_Emp'] != $idEmp) return false;
+    $s = $c['Statut_Cge'];
+    // Chef sur sa propre demande auto-approuvée, RH pas encore agi
+    if ($idPfl == 2 && $s === 'approuve_chef' && empty($c['id_Emp_ValidRH'])) return true;
+    return $s === 'en_attente';
 }
 ?>
 
@@ -415,15 +443,12 @@ if (in_array($idPfl, [1, 2, 3])) {
 
 <?php if (session()->getFlashdata('success')): ?>
 <div class="alert-success-dark">
-    <i class="fas fa-check-circle"></i>
-    <?= esc(session()->getFlashdata('success')) ?>
+    <i class="fas fa-check-circle"></i> <?= esc(session()->getFlashdata('success')) ?>
 </div>
 <?php endif; ?>
-
 <?php if (session()->getFlashdata('error')): ?>
 <div class="alert-error-dark">
-    <i class="fas fa-exclamation-triangle"></i>
-    <?= esc(session()->getFlashdata('error')) ?>
+    <i class="fas fa-exclamation-triangle"></i> <?= esc(session()->getFlashdata('error')) ?>
 </div>
 <?php endif; ?>
 
@@ -454,81 +479,65 @@ if (in_array($idPfl, [1, 2, 3])) {
             <span>Consommation</span><span><?= $pct ?>%</span>
         </div>
         <div style="height:5px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden;">
-            <div style="height:100%;width:<?= $pct ?>%;background:linear-gradient(90deg,var(--c-orange),#d4891a);border-radius:3px;" id="solde-bar"></div>
+            <div style="height:100%;width:<?= $pct ?>%;background:linear-gradient(90deg,var(--c-orange),#d4891a);border-radius:3px;"></div>
         </div>
     </div>
 </div>
 <?php endif; ?>
 
-<!-- Stats -->
+<!-- Stats — 6 pills -->
 <div class="stat-strip">
     <div class="stat-pill">
         <div class="stat-pill-icon sp-orange"><i class="fas fa-list"></i></div>
-        <div>
-            <div class="stat-pill-val" id="cnt-total">0</div>
-            <div class="stat-pill-label">Total</div>
-        </div>
+        <div><div class="stat-pill-val" id="cnt-total">0</div><div class="stat-pill-label">Total</div></div>
     </div>
     <div class="stat-pill">
         <div class="stat-pill-icon sp-yellow"><i class="fas fa-clock"></i></div>
-        <div>
-            <div class="stat-pill-val" id="cnt-attente">0</div>
-            <div class="stat-pill-label">En attente</div>
-        </div>
+        <div><div class="stat-pill-val" id="cnt-attente">0</div><div class="stat-pill-label">En attente</div></div>
     </div>
     <div class="stat-pill">
         <div class="stat-pill-icon sp-blue"><i class="fas fa-user-check"></i></div>
-        <div>
-            <div class="stat-pill-val" id="cnt-chef">0</div>
-            <div class="stat-pill-label">Approuvé Chef</div>
-        </div>
+        <div><div class="stat-pill-val" id="cnt-chef">0</div><div class="stat-pill-label">Approuvé Chef</div></div>
     </div>
     <div class="stat-pill">
         <div class="stat-pill-icon sp-green"><i class="fas fa-check-double"></i></div>
-        <div>
-            <div class="stat-pill-val" id="cnt-valide">0</div>
-            <div class="stat-pill-label">Validé RH</div>
-        </div>
+        <div><div class="stat-pill-val" id="cnt-valide">0</div><div class="stat-pill-label">Validé RH</div></div>
     </div>
     <div class="stat-pill">
         <div class="stat-pill-icon sp-red"><i class="fas fa-times-circle"></i></div>
-        <div>
-            <div class="stat-pill-val" id="cnt-rejete">0</div>
-            <div class="stat-pill-label">Rejetés</div>
-        </div>
+        <div><div class="stat-pill-val" id="cnt-rejete">0</div><div class="stat-pill-label">Rejetés</div></div>
+    </div>
+    <div class="stat-pill">
+        <div class="stat-pill-icon sp-grey"><i class="fas fa-hourglass-end"></i></div>
+        <div><div class="stat-pill-val" id="cnt-expire">0</div><div class="stat-pill-label">Expirés</div></div>
     </div>
 </div>
 
-<!-- ===== ONGLETS PRINCIPAUX ===== -->
+<!-- Onglets -->
 <div class="main-tabs">
     <button class="main-tab-btn active" id="tab-btn-mes" onclick="switchMainTab('mes', this)">
-        <i class="fas fa-user"></i>
-        Mes demandes
+        <i class="fas fa-user"></i> Mes demandes
         <span class="main-tab-count" id="cnt-mes-tab"><?= count($mesConges) ?></span>
     </button>
     <?php if ($idPfl != 3): ?>
     <button class="main-tab-btn" id="tab-btn-tous" onclick="switchMainTab('tous', this)">
-        <i class="fas fa-users"></i>
-        Tous les congés
+        <i class="fas fa-users"></i> Tous les congés
         <span class="main-tab-count" id="cnt-tous-tab"><?= count($tousConges) ?></span>
     </button>
     <?php endif; ?>
 </div>
 
 <?php
-// Helper pour générer le bloc filtre + tableau
 function renderCongeTable(array $rows, string $prefix, int $idPfl, int $idEmp, array $typesConge, array $directions): void
 {
-    $isTous = ($prefix === 'tous');
-    $hasDir = ($idPfl == 1 && $isTous);
+    $isTous  = ($prefix === 'tous');
+    $hasDir  = ($idPfl == 1 && $isTous);
     $colspan = ($isTous && $idPfl != 3) ? 10 : 9;
 ?>
-<!-- Filtres -->
 <div class="filter-panel">
     <div class="filter-panel-head" onclick="toggleFilters('<?= $prefix ?>')">
         <div class="filter-panel-head-left">
-            <i class="fas fa-sliders-h"></i>
-            Filtres
+            <i class="fas fa-sliders-h"></i> Filtres
             <span class="filter-badge" id="<?= $prefix ?>-filter-badge">0</span>
         </div>
         <i class="fas fa-chevron-down filter-chevron open" id="<?= $prefix ?>-filter-chevron"></i>
@@ -539,8 +548,7 @@ function renderCongeTable(array $rows, string $prefix, int $idPfl, int $idEmp, a
                 <div class="filter-label">Recherche</div>
                 <div class="filter-search-wrap">
                     <i class="fas fa-search"></i>
-                    <input type="text" class="filter-input" id="<?= $prefix ?>-f-search"
-                           placeholder="Nom, libellé...">
+                    <input type="text" class="filter-input" id="<?= $prefix ?>-f-search" placeholder="Nom, libellé...">
                 </div>
             </div>
             <div class="filter-group">
@@ -552,6 +560,7 @@ function renderCongeTable(array $rows, string $prefix, int $idPfl, int $idEmp, a
                     <option value="rejete_chef">Refusé Chef</option>
                     <option value="valide_rh">Validé RH</option>
                     <option value="rejete_rh">Rejeté RH</option>
+                    <option value="expire">Expiré</option>
                 </select>
             </div>
             <div class="filter-group">
@@ -622,12 +631,9 @@ function renderCongeTable(array $rows, string $prefix, int $idPfl, int $idEmp, a
     </div>
 </div>
 
-<!-- Tableau -->
 <div class="table-wrapper">
     <div class="table-head-bar">
-        <h6><i class="fas fa-table"></i>
-            <?= $isTous ? 'Toutes les demandes' : 'Mes demandes' ?>
-        </h6>
+        <h6><i class="fas fa-table"></i> <?= $isTous ? 'Toutes les demandes' : 'Mes demandes' ?></h6>
         <span class="table-foot-info" id="<?= $prefix ?>-count-label">
             <strong style="color:var(--c-soft);"><?= count($rows) ?></strong> demande(s)
         </span>
@@ -660,11 +666,13 @@ function renderCongeTable(array $rows, string $prefix, int $idPfl, int $idEmp, a
                     'rejete_chef'   => ['bs-rejete-chef',   'Refusé Chef',   '#ff8080'],
                     'valide_rh'     => ['bs-valide-rh',     'Validé RH',     '#7ab86a'],
                     'rejete_rh'     => ['bs-rejete-rh',     'Rejeté RH',     '#ff8080'],
+                    'expire'        => ['bs-expire',        'Expiré',        '#888'],
                     default         => ['bs-attente',        $statut,         '#ffc107'],
                 };
 
-                $canEdit   = ($c['id_Emp'] == $idEmp && $statut === 'en_attente');
-                $canDelete = ($idPfl == 1) || ($c['id_Emp'] == $idEmp && $statut === 'en_attente');
+                // Logique cohérente avec le contrôleur
+                $canEdit   = peutModifierConge($c, $idEmp, $idPfl);
+                $canDelete = ($idPfl == 1) || peutModifierConge($c, $idEmp, $idPfl);
             ?>
             <tr class="<?= $prefix ?>-row"
                 data-nom="<?= strtolower(esc(($c['Nom_Emp'] ?? '') . ' ' . ($c['Prenom_Emp'] ?? ''))) ?>"
@@ -709,12 +717,8 @@ function renderCongeTable(array $rows, string $prefix, int $idPfl, int $idEmp, a
 
                 <td><?= date('d/m/Y', strtotime($debut)) ?></td>
                 <td><?= date('d/m/Y', strtotime($fin)) ?></td>
-
                 <td><span class="duree-pill"><?= $nbJours ?> j</span></td>
-
-                <td style="color:var(--c-muted);font-size:0.75rem;">
-                    <?= date('d/m/Y', strtotime($c['DateDemande_Cge'])) ?>
-                </td>
+                <td style="color:var(--c-muted);font-size:0.75rem;"><?= date('d/m/Y', strtotime($c['DateDemande_Cge'])) ?></td>
 
                 <td>
                     <span class="badge-statut <?= $bsCls ?>">
@@ -765,16 +769,12 @@ function renderCongeTable(array $rows, string $prefix, int $idPfl, int $idEmp, a
         <span class="table-foot-info" id="<?= $prefix ?>-footer-count"><?= count($rows) ?> demande(s) affichée(s)</span>
     </div>
 </div>
-<?php
-}
-?>
+<?php } ?>
 
-<!-- ===== ONGLET MES DEMANDES ===== -->
 <div class="main-tab-panel active" id="panel-mes">
     <?php renderCongeTable($mesConges, 'mes', $idPfl, $idEmp, $typesConge, $directions); ?>
 </div>
 
-<!-- ===== ONGLET TOUS LES CONGES (RH + Chef) ===== -->
 <?php if ($idPfl != 3): ?>
 <div class="main-tab-panel" id="panel-tous">
     <?php renderCongeTable($tousConges, 'tous', $idPfl, $idEmp, $typesConge, $directions); ?>
@@ -803,9 +803,7 @@ function renderCongeTable(array $rows, string $prefix, int $idPfl, int $idEmp, a
     </div>
 </div>
 
-<form id="form-delete" method="POST" style="display:none;">
-    <?= csrf_field() ?>
-</form>
+<form id="form-delete" method="POST" style="display:none;"><?= csrf_field() ?></form>
 
 <?= $this->endSection() ?>
 
@@ -813,13 +811,11 @@ function renderCongeTable(array $rows, string $prefix, int $idPfl, int $idEmp, a
 <script>
 (function() {
 
-    // ===== COMPTEURS ANIMÉS =====
     function animCount(id, target) {
         var el = document.getElementById(id);
         if (!el) return;
-        var current = 0;
-        var step    = Math.max(1, Math.ceil(target / 30));
-        var timer   = setInterval(function() {
+        var current = 0, step = Math.max(1, Math.ceil(target / 30));
+        var timer = setInterval(function() {
             current = Math.min(current + step, target);
             el.textContent = current;
             if (current >= target) clearInterval(timer);
@@ -831,8 +827,8 @@ function renderCongeTable(array $rows, string $prefix, int $idPfl, int $idEmp, a
     animCount('cnt-chef',    <?= (int)$approuveChef ?>);
     animCount('cnt-valide',  <?= (int)$valideRH ?>);
     animCount('cnt-rejete',  <?= (int)$rejetes ?>);
+    animCount('cnt-expire',  <?= (int)$expires ?>);
 
-    // ===== SWITCH ONGLET PRINCIPAL =====
     window.switchMainTab = function(tab, btn) {
         document.querySelectorAll('.main-tab-panel').forEach(function(p) { p.classList.remove('active'); });
         document.querySelectorAll('.main-tab-btn').forEach(function(b)   { b.classList.remove('active'); });
@@ -840,25 +836,20 @@ function renderCongeTable(array $rows, string $prefix, int $idPfl, int $idEmp, a
         btn.classList.add('active');
     };
 
-    // ===== TOGGLE FILTRES =====
     window.toggleFilters = function(prefix) {
         document.getElementById(prefix + '-filter-body').classList.toggle('open');
         document.getElementById(prefix + '-filter-chevron').classList.toggle('open');
     };
 
-    // ===== FILTRES CLIENT =====
     function buildFilter(prefix) {
-        var rows     = document.querySelectorAll('.' + prefix + '-row');
-        var noResult = document.getElementById(prefix + '-no-results');
-        var badge    = document.getElementById(prefix + '-filter-badge');
-        var btnReset = document.getElementById(prefix + '-btn-reset');
+        var rows       = document.querySelectorAll('.' + prefix + '-row');
+        var noResult   = document.getElementById(prefix + '-no-results');
+        var badge      = document.getElementById(prefix + '-filter-badge');
+        var btnReset   = document.getElementById(prefix + '-btn-reset');
         var footCount  = document.getElementById(prefix + '-footer-count');
         var countLabel = document.getElementById(prefix + '-count-label');
 
-        function getVal(id) {
-            var el = document.getElementById(id);
-            return el ? el.value : '';
-        }
+        function getVal(id) { var el = document.getElementById(id); return el ? el.value : ''; }
 
         function applyFilters() {
             var search      = getVal(prefix + '-f-search').trim().toLowerCase();
@@ -882,9 +873,8 @@ function renderCongeTable(array $rows, string $prefix, int $idPfl, int $idEmp, a
             var visible = 0;
 
             rows.forEach(function(row) {
-                var debut   = row.dataset.debut;
-                var demande = row.dataset.demande;
-                var duree   = parseInt(row.dataset.duree) || 0;
+                var debut = row.dataset.debut, demande = row.dataset.demande;
+                var duree = parseInt(row.dataset.duree) || 0;
 
                 var match =
                     (search === '' || row.dataset.nom.includes(search) || row.dataset.libelle.includes(search)) &&
@@ -898,19 +888,17 @@ function renderCongeTable(array $rows, string $prefix, int $idPfl, int $idEmp, a
                     (demandeTo   === '' || demande <= demandeTo) &&
                     (dureeMin === 0 || duree >= dureeMin);
 
+                row.style.display = match ? '' : 'none';
                 if (match) {
-                    row.style.display = '';
                     visible++;
                     var numCell = row.querySelector('.row-num');
                     if (numCell) numCell.textContent = visible;
-                } else {
-                    row.style.display = 'none';
                 }
             });
 
             noResult.classList.toggle('visible', visible === 0);
-            footCount.textContent  = visible + ' demande(s) affichée(s)';
-            countLabel.innerHTML   = '<strong style="color:rgba(255,255,255,0.55);">' + visible + '</strong> demande(s)';
+            footCount.textContent = visible + ' demande(s) affichée(s)';
+            countLabel.innerHTML  = '<strong style="color:rgba(255,255,255,0.55);">' + visible + '</strong> demande(s)';
         }
 
         window['resetFilters'] = function(p) {
@@ -918,10 +906,7 @@ function renderCongeTable(array $rows, string $prefix, int $idPfl, int $idEmp, a
             [prefix+'-f-search', prefix+'-f-statut', prefix+'-f-type', prefix+'-f-dir',
              prefix+'-f-annee', prefix+'-f-debut-from', prefix+'-f-debut-to',
              prefix+'-f-demande-from', prefix+'-f-demande-to', prefix+'-f-duree-min']
-            .forEach(function(id) {
-                var el = document.getElementById(id);
-                if (el) el.value = '';
-            });
+            .forEach(function(id) { var el = document.getElementById(id); if (el) el.value = ''; });
             applyFilters();
         };
 
@@ -930,19 +915,14 @@ function renderCongeTable(array $rows, string $prefix, int $idPfl, int $idEmp, a
          prefix+'-f-demande-from', prefix+'-f-demande-to', prefix+'-f-duree-min']
         .forEach(function(id) {
             var el = document.getElementById(id);
-            if (el) {
-                el.addEventListener('input',  applyFilters);
-                el.addEventListener('change', applyFilters);
-            }
+            if (el) { el.addEventListener('input', applyFilters); el.addEventListener('change', applyFilters); }
         });
     }
 
     buildFilter('mes');
-    <?php if ($idPfl != 3): ?>
-    buildFilter('tous');
-    <?php endif; ?>
+    <?php if ($idPfl != 3): ?>buildFilter('tous');<?php endif; ?>
 
-    // ===== MODAL SUPPRESSION =====
+    // Modal suppression
     var deleteUrl = '';
 
     window.confirmDelete = function(id, label) {
@@ -966,9 +946,7 @@ function renderCongeTable(array $rows, string $prefix, int $idPfl, int $idEmp, a
         if (e.target === this) window.closeDeleteModal();
     });
 
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') window.closeDeleteModal();
-    });
+    document.addEventListener('keydown', function(e) { if (e.key === 'Escape') window.closeDeleteModal(); });
 
     document.addEventListener('DOMContentLoaded', function() {
         document.body.appendChild(document.getElementById('modal-delete'));

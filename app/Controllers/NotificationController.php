@@ -69,7 +69,7 @@ class NotificationController extends BaseController
     }
 
     // ══════════════════════════════════════════════════════════
-    // LIRE TOUTES — marquer toutes comme lues (AJAX)
+    // LIRE TOUTES — marquer toutes comme lues
     // ══════════════════════════════════════════════════════════
     public function lireToutes()
     {
@@ -91,13 +91,79 @@ class NotificationController extends BaseController
     // ══════════════════════════════════════════════════════════
     public function count()
     {
+        $idEmp = $this->idEmp();
+
+        if (!$idEmp) {
+            return $this->response->setJSON(['count' => 0]);
+        }
+
         $db = \Config\Database::connect();
         $n  = $db->table('notification')
-            ->where('id_Emp_Dest', $this->idEmp())
+            ->where('id_Emp_Dest', $idEmp)
             ->where('Lu_Notif', 0)
             ->countAllResults();
 
         return $this->response->setJSON(['count' => $n]);
+    }
+
+    // ══════════════════════════════════════════════════════════
+    // SSE — Server-Sent Events pour notifications temps réel
+    // ══════════════════════════════════════════════════════════
+    public function stream()
+    {
+        $idEmp = $this->idEmp();
+
+        if (!$idEmp) {
+            return $this->response->setStatusCode(401);
+        }
+
+        // Headers SSE obligatoires
+        header('Content-Type: text/event-stream');
+        header('Cache-Control: no-cache');
+        header('X-Accel-Buffering: no');
+        header('Connection: keep-alive');
+
+        // Désactiver le buffer de sortie
+        if (ob_get_level()) ob_end_clean();
+
+        $db        = \Config\Database::connect();
+        $dernierVu = (int) ($this->request->getGet('last_id') ?? 0);
+        $maxIter   = 30; // 30 × 2s = 60s puis reconnexion auto côté client
+
+        for ($i = 0; $i < $maxIter; $i++) {
+
+            $nouvelles = $db->table('notification')
+                ->select('notification.*, employe.Nom_Emp AS src_nom, employe.Prenom_Emp AS src_prenom')
+                ->join('employe', 'employe.id_Emp = notification.id_Emp_Src', 'left')
+                ->where('notification.id_Emp_Dest', $idEmp)
+                ->where('notification.id_Notif >', $dernierVu)
+                ->orderBy('notification.id_Notif', 'ASC')
+                ->get()->getResultArray();
+
+            if (!empty($nouvelles)) {
+                $dernierVu = max(array_column($nouvelles, 'id_Notif'));
+
+                $nonLues = $db->table('notification')
+                    ->where('id_Emp_Dest', $idEmp)
+                    ->where('Lu_Notif', 0)
+                    ->countAllResults();
+
+                echo "data: " . json_encode([
+                    'notifications' => $nouvelles,
+                    'count'         => $nonLues,
+                    'last_id'       => $dernierVu,
+                ]) . "\n\n";
+
+                flush();
+            }
+
+            sleep(2);
+        }
+
+        // Signal de reconnexion au client après 60s
+        echo "event: reconnect\ndata: {}\n\n";
+        flush();
+        exit;
     }
 
     // ══════════════════════════════════════════════════════════
@@ -128,6 +194,10 @@ class NotificationController extends BaseController
             ->where('id_Emp_Dest', $this->idEmp())
             ->where('Lu_Notif', 1)
             ->delete();
+
+        if ($this->request->isAJAX()) {
+            return $this->response->setJSON(['success' => true]);
+        }
 
         return redirect()->to('notifications')->with('success', 'Notifications lues supprimées.');
     }

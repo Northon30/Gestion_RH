@@ -25,12 +25,6 @@ class AbsenceController extends BaseController
     private function idEmp(): int { return (int) session()->get('id_Emp'); }
     private function idPfl(): int { return (int) session()->get('id_Pfl'); }
 
-    /**
-     * Retourne la vue du bon dossier selon le profil connecté :
-     *   id_Pfl = 1  →  rh/absence/{page}
-     *   id_Pfl = 2  →  chef/absence/{page}
-     *   id_Pfl = 3  →  employe/absence/{page}
-     */
     private function profileView(string $page, array $data = []): string
     {
         $folder = match ($this->idPfl()) {
@@ -39,7 +33,6 @@ class AbsenceController extends BaseController
             3       => 'employe',
             default => 'employe',
         };
-
         return view("{$folder}/absence/{$page}", $data);
     }
 
@@ -52,13 +45,72 @@ class AbsenceController extends BaseController
         );
     }
 
-    private function getChefIds(): array
+    private function getChefsDirIds(int $idDir): array
     {
         $db = \Config\Database::connect();
         return array_column(
-            $db->table('employe')->where('id_Pfl', 2)->get()->getResultArray(),
+            $db->table('employe')
+               ->where('id_Pfl', 2)
+               ->where('id_Dir', $idDir)
+               ->get()->getResultArray(),
             'id_Emp'
         );
+    }
+
+
+    private function peutModifier(array $absence): bool
+    {
+        $idEmp = $this->idEmp();
+        $idPfl = $this->idPfl();
+
+        if ($absence['id_Emp'] != $idEmp) {
+            return false;
+        }
+
+        $statut = $absence['Statut_Abs'];
+
+        // Chef pour lui-même : auto-approuvé mais RH pas encore vu → modifiable
+        if ($idPfl == 2 &&
+            $statut === 'approuve_chef' &&
+            empty($absence['id_Emp_ValidRH'])) {
+            return true;
+        }
+
+        // Tous les autres : modifiable seulement si encore en_attente
+        return $statut === 'en_attente';
+    }
+
+    // ── HELPER : expiration automatique ───────────────────────
+    // Si la date de début est dépassée et statut encore en_attente/approuve_chef
+    // → passe automatiquement à "expire"
+    private function expirerSiNecessaire(array $absence): array
+    {
+        $statutsExpirables = ['en_attente', 'approuve_chef'];
+
+        if (!in_array($absence['Statut_Abs'], $statutsExpirables)) {
+            return $absence;
+        }
+
+        $dateDebut = new \DateTime($absence['DateDebut_Abs']);
+        $today     = new \DateTime(date('Y-m-d'));
+
+        if ($dateDebut < $today) {
+            $this->model->update($absence['id_Abs'], ['Statut_Abs' => 'expire']);
+            $absence['Statut_Abs'] = 'expire';
+
+            $this->notif->envoyer(
+                $absence['id_Emp'],
+                'Votre demande d\'absence a expiré',
+                'Votre demande d\'absence du '
+                . date('d/m/Y', strtotime($absence['DateDebut_Abs']))
+                . ' a expiré automatiquement car la date de début est dépassée.',
+                'absence',
+                base_url('absence/show/' . $absence['id_Abs']),
+                0
+            );
+        }
+
+        return $absence;
     }
 
     // ── INDEX ─────────────────────────────────────────────────
@@ -77,19 +129,16 @@ class AbsenceController extends BaseController
             ->join('type_absence', 'type_absence.id_TAbs = absence.id_TAbs', 'left');
 
         if ($idPfl == 3) {
-            // Employé : uniquement ses propres absences
             $query->where('absence.id_Emp', $idEmp);
         }
 
         if ($idPfl == 2) {
-            // Chef : ses absences + celles de sa direction déjà traitées
             $emp = (new EmployeModel())->find($idEmp);
             $query->groupStart()
                     ->where('absence.id_Emp', $idEmp)
                     ->orGroupStart()
                         ->where('employe.id_Dir', $emp['id_Dir'])
                         ->where('absence.id_Emp !=', $idEmp)
-                        ->whereIn('absence.Statut_Abs', ['valide_rh', 'approuve', 'rejete'])
                     ->groupEnd()
                   ->groupEnd();
         }
@@ -97,17 +146,19 @@ class AbsenceController extends BaseController
         $absences = $query->orderBy('absence.DateDebut_Abs', 'DESC')
                           ->get()->getResultArray();
 
+        // Expirer les demandes dont la date est dépassée
+        foreach ($absences as &$abs) {
+            $abs = $this->expirerSiNecessaire($abs);
+        }
+        unset($abs);
+
         $data = [
             'title'        => 'Absences',
             'absences'     => $absences,
             'idPfl'        => $idPfl,
             'idEmp'        => $idEmp,
-            'directions'   => $db->table('direction')
-                                 ->orderBy('Nom_Dir', 'ASC')
-                                 ->get()->getResultArray(),
-            'typesAbsence' => $db->table('type_absence')
-                                 ->orderBy('Libelle_TAbs', 'ASC')
-                                 ->get()->getResultArray(),
+            'directions'   => $db->table('direction')->orderBy('Nom_Dir')->get()->getResultArray(),
+            'typesAbsence' => $db->table('type_absence')->orderBy('Libelle_TAbs')->get()->getResultArray(),
         ];
 
         return $this->profileView('index', $data);
@@ -123,6 +174,7 @@ class AbsenceController extends BaseController
         $absence = $db->table('absence')
             ->select('absence.*, employe.Nom_Emp, employe.Prenom_Emp,
                       employe.Email_Emp, employe.id_Dir,
+                      employe.id_Pfl AS Pfl_Demandeur,
                       direction.Nom_Dir, type_absence.Libelle_TAbs,
                       validRH.Nom_Emp    AS NomValidRH,
                       validRH.Prenom_Emp AS PrenomValidRH,
@@ -140,7 +192,9 @@ class AbsenceController extends BaseController
             return redirect()->to('absence')->with('error', 'Absence introuvable.');
         }
 
-        // Contrôle d'accès
+        // Expirer si nécessaire
+        $absence = $this->expirerSiNecessaire($absence);
+
         if ($idPfl == 3 && $absence['id_Emp'] != $idEmp) {
             return redirect()->to('absence')->with('error', 'Accès refusé.');
         }
@@ -152,7 +206,6 @@ class AbsenceController extends BaseController
             }
         }
 
-        // Pièces justificatives avec valideur
         $pieces = $db->table('piece_justificative')
             ->select('piece_justificative.*,
                       validPJ.Nom_Emp AS NomValidPJ, validPJ.Prenom_Emp AS PrenomValidPJ')
@@ -163,13 +216,30 @@ class AbsenceController extends BaseController
 
         $estJustifiee = !empty(array_filter($pieces, fn($p) => $p['Statut_PJ'] === 'validee'));
 
+        $solde = (new \App\Models\SoldeCongeModel())
+            ->where('id_Emp', $absence['id_Emp'])
+            ->where('Annee_Sld', date('Y'))
+            ->first();
+
+        $historiqueAbsences = $db->table('absence')
+            ->select('absence.*, type_absence.Libelle_TAbs')
+            ->join('type_absence', 'type_absence.id_TAbs = absence.id_TAbs', 'left')
+            ->where('absence.id_Emp', $absence['id_Emp'])
+            ->where('absence.id_Abs !=', $id)
+            ->whereIn('absence.Statut_Abs', ['valide_rh', 'approuve_chef'])
+            ->orderBy('absence.DateDebut_Abs', 'DESC')
+            ->get()->getResultArray();
+
         $data = [
-            'title'        => 'Détail Absence',
-            'absence'      => $absence,
-            'pieces'       => $pieces,
-            'estJustifiee' => $estJustifiee,
-            'idPfl'        => $idPfl,
-            'idEmp'        => $idEmp,
+            'title'              => 'Détail Absence',
+            'absence'            => $absence,
+            'pieces'             => $pieces,
+            'estJustifiee'       => $estJustifiee,
+            'solde'              => $solde,
+            'historiqueAbsences' => $historiqueAbsences,
+            'peutModifier'       => $this->peutModifier($absence),
+            'idPfl'              => $idPfl,
+            'idEmp'              => $idEmp,
         ];
 
         return $this->profileView('show', $data);
@@ -186,7 +256,6 @@ class AbsenceController extends BaseController
             'idPfl'        => $idPfl,
         ];
 
-        // RH seulement : peut déclarer pour un autre employé
         if ($idPfl == 1) {
             $data['employes'] = (new EmployeModel())->findAll();
         }
@@ -223,16 +292,17 @@ class AbsenceController extends BaseController
             : $idEmp;
 
         $demandeur = (new EmployeModel())->find($idEmpCible);
+        $idDir     = $demandeur['id_Dir'];
 
-        // RH déclare pour lui-même → statut valide_rh directement
-        $statutInitial    = 'en_attente';
-        $idValidRH        = null;
-        $dateValidationRH = null;
+        $statutInitial   = 'en_attente';
+        $idValidDir      = null;
+        $dateDecisionDir = null;
 
-        if ($idEmpCible == $idEmp && $idPfl == 1) {
-            $statutInitial    = 'valide_rh';
-            $idValidRH        = $idEmp;
-            $dateValidationRH = date('Y-m-d H:i:s');
+        // Chef pour lui-même → saute son propre niveau de validation
+        if ($idPfl == 2 && $idEmpCible == $idEmp) {
+            $statutInitial   = 'approuve_chef';
+            $idValidDir      = $idEmp;
+            $dateDecisionDir = date('Y-m-d H:i:s');
         }
 
         $id = $this->model->insert([
@@ -244,71 +314,49 @@ class AbsenceController extends BaseController
             'Rapport_Abs'          => $this->request->getPost('Rapport_Abs'),
             'Statut_Abs'           => $statutInitial,
             'id_Emp'               => $idEmpCible,
-            'id_Emp_ValidRH'       => $idValidRH,
-            'DateValidationRH_Abs' => $dateValidationRH,
+            'id_Emp_ValidDir'      => $idValidDir,
+            'DateDecisionDir_Abs'  => $dateDecisionDir,
+            'id_Emp_ValidRH'       => null,
+            'DateValidationRH_Abs' => null,
         ]);
 
-        $lien = base_url('absence/show/' . $id);
+        $lien     = base_url('absence/show/' . $id);
+        $nomEmp   = $demandeur['Nom_Emp'] . ' ' . $demandeur['Prenom_Emp'];
+        $periode  = date('d/m/Y', strtotime($debut)) . ($fin ? ' au ' . date('d/m/Y', strtotime($fin)) : '');
+        $chefsDir = $this->getChefsDirIds($idDir);
 
-        // Employé → notifier les RH
         if ($idPfl == 3) {
-            $this->notif->envoyerMultiple(
-                $this->getRHIds(),
-                'Nouvelle déclaration d\'absence',
-                $demandeur['Nom_Emp'] . ' ' . $demandeur['Prenom_Emp']
-                . ' a déclaré une absence du '
-                . date('d/m/Y', strtotime($debut))
-                . ($fin ? ' au ' . date('d/m/Y', strtotime($fin)) : '') . '.',
-                'absence', $lien, $idEmp
-            );
+            if (!empty($chefsDir)) {
+                $this->notif->envoyerMultiple($chefsDir, 'Nouvelle déclaration d\'absence',
+                    $nomEmp . ' a déclaré une absence du ' . $periode . '.', 'absence', $lien, $idEmp);
+            }
+            $this->notif->envoyerMultiple($this->getRHIds(), 'Nouvelle déclaration d\'absence',
+                $nomEmp . ' a déclaré une absence du ' . $periode . '.', 'absence', $lien, $idEmp);
         }
 
-        // RH pour lui-même → notifier les Chefs
         if ($idPfl == 1 && $idEmpCible == $idEmp) {
-            $this->notif->envoyerMultiple(
-                $this->getChefIds(),
-                'Absence RH à approuver',
-                $demandeur['Nom_Emp'] . ' ' . $demandeur['Prenom_Emp']
-                . ' (RH) a déclaré une absence du '
-                . date('d/m/Y', strtotime($debut))
-                . ($fin ? ' au ' . date('d/m/Y', strtotime($fin)) : '')
-                . '. Elle est prête pour votre approbation.',
-                'absence', $lien, $idEmp
-            );
+            if (!empty($chefsDir)) {
+                $this->notif->envoyerMultiple($chefsDir, 'Demande d\'absence RH à valider',
+                    $nomEmp . ' (RH) a déclaré une absence du ' . $periode . '. Votre validation est suffisante.',
+                    'absence', $lien, $idEmp);
+            }
         }
 
-        // RH déclare pour un autre employé → notifier les RH + l'employé
+        if ($idPfl == 2 && $idEmpCible == $idEmp) {
+            $this->notif->envoyerMultiple($this->getRHIds(), 'Absence Chef de Direction à valider',
+                $nomEmp . ' (Chef de Direction) a déclaré une absence du ' . $periode . ' et attend votre validation.',
+                'absence', $lien, $idEmp);
+        }
+
         if ($idPfl == 1 && $idEmpCible != $idEmp) {
-            $this->notif->envoyerMultiple(
-                $this->getRHIds(),
-                'Nouvelle déclaration d\'absence',
-                $demandeur['Nom_Emp'] . ' ' . $demandeur['Prenom_Emp']
-                . ' a déclaré une absence du '
-                . date('d/m/Y', strtotime($debut))
-                . ($fin ? ' au ' . date('d/m/Y', strtotime($fin)) : '') . '.',
-                'absence', $lien, $idEmp
-            );
-            $this->notif->envoyer(
-                $idEmpCible,
-                'Une absence a été déclarée pour vous',
-                'Le RH a enregistré une absence en votre nom du '
-                . date('d/m/Y', strtotime($debut))
-                . ($fin ? ' au ' . date('d/m/Y', strtotime($fin)) : '') . '.',
-                'absence', $lien, $idEmp
-            );
-        }
-
-        // Chef → notifier les RH
-        if ($idPfl == 2) {
-            $this->notif->envoyerMultiple(
-                $this->getRHIds(),
-                'Absence — Chef de Direction',
-                $demandeur['Nom_Emp'] . ' ' . $demandeur['Prenom_Emp']
-                . ' (Chef de Direction) a déclaré une absence du '
-                . date('d/m/Y', strtotime($debut))
-                . ($fin ? ' au ' . date('d/m/Y', strtotime($fin)) : '') . '.',
-                'absence', $lien, $idEmp
-            );
+            if (!empty($chefsDir)) {
+                $this->notif->envoyerMultiple($chefsDir, 'Nouvelle déclaration d\'absence',
+                    $nomEmp . ' a déclaré une absence du ' . $periode . '.', 'absence', $lien, $idEmp);
+            }
+            $this->notif->envoyerMultiple($this->getRHIds(), 'Nouvelle déclaration d\'absence',
+                $nomEmp . ' a déclaré une absence du ' . $periode . '.', 'absence', $lien, $idEmp);
+            $this->notif->envoyer($idEmpCible, 'Une absence a été déclarée pour vous',
+                'Le RH a enregistré une absence en votre nom du ' . $periode . '.', 'absence', $lien, $idEmp);
         }
 
         $this->log->insert([
@@ -320,105 +368,123 @@ class AbsenceController extends BaseController
             'id_Emp'          => $idEmp,
         ]);
 
+        return redirect()->to('absence/show/' . $id)->with('success', 'Absence déclarée avec succès.');
+    }
+
+    /// ── EDIT ──────────────────────────────────────────────────
+public function edit($id)
+{
+    $idPfl   = $this->idPfl();
+    $idEmp   = $this->idEmp();
+    $absence = $this->model->find($id);
+
+    if (!$absence || $absence['id_Emp'] != $idEmp) {
+        return redirect()->to('absence')->with('error', 'Accès refusé.');
+    }
+
+    if (!$this->peutModifier($absence)) {
         return redirect()->to('absence/show/' . $id)
-                         ->with('success', 'Absence déclarée avec succès.');
+                         ->with('error', 'Impossible de modifier cette absence.');
     }
 
-    // ── EDIT ──────────────────────────────────────────────────
-    public function edit($id)
-    {
-        $idPfl   = $this->idPfl();
-        $idEmp   = $this->idEmp();
-        $absence = $this->model->find($id);
+    $employe = (new EmployeModel())->find($idEmp); // ← ajout
 
-        if (!$absence) {
-            return redirect()->to('absence')->with('error', 'Absence introuvable.');
-        }
+    $data = [
+        'title'        => 'Modifier l\'Absence',
+        'absence'      => $absence,
+        'employe'      => $employe,                // ← ajout
+        'typesAbsence' => (new TypeAbsenceModel())->findAll(),
+        'idPfl'        => $idPfl,
+    ];
 
-        if ($absence['id_Emp'] != $idEmp) {
-            return redirect()->to('absence')->with('error', 'Accès refusé.');
-        }
-
-        if ($absence['Statut_Abs'] != 'en_attente') {
-            return redirect()->to('absence')
-                             ->with('error', 'Impossible de modifier une absence déjà traitée.');
-        }
-
-        $data = [
-            'title'        => 'Modifier l\'Absence',
-            'absence'      => $absence,
-            'typesAbsence' => (new TypeAbsenceModel())->findAll(),
-            'idPfl'        => $idPfl,
-        ];
-
-        return $this->profileView('edit', $data);
-    }
+    return $this->profileView('edit', $data);
+}
 
     // ── UPDATE ────────────────────────────────────────────────
     public function update($id)
-    {
-        $idEmp   = $this->idEmp();
-        $absence = $this->model->find($id);
+{
+    $idEmp   = $this->idEmp();
+    $absence = $this->model->find($id);
 
-        if (!$absence) {
-            return redirect()->to('absence')->with('error', 'Absence introuvable.');
-        }
-
-        if ($absence['id_Emp'] != $idEmp) {
-            return redirect()->to('absence')->with('error', 'Accès refusé.');
-        }
-
-        if ($absence['Statut_Abs'] != 'en_attente') {
-            return redirect()->to('absence')
-                             ->with('error', 'Impossible de modifier une absence déjà traitée.');
-        }
-
-        $debut = $this->request->getPost('DateDebut_Abs');
-        $fin   = $this->request->getPost('DateFin_Abs');
-
-        if ($fin && $fin < $debut) {
-            return redirect()->back()->withInput()
-                             ->with('error', 'La date de fin doit être après la date de début.');
-        }
-
-        $this->model->update($id, [
-            'id_TAbs'       => $this->request->getPost('id_TAbs'),
-            'DateDebut_Abs' => $debut,
-            'DateFin_Abs'   => $fin ?: null,
-            'Motif_Abs'     => $this->request->getPost('Motif_Abs'),
-            'Rapport_Abs'   => $this->request->getPost('Rapport_Abs'),
-        ]);
-
-        $this->log->insert([
-            'Action_Log'      => 'UPDATE',
-            'Module_Log'      => 'Absence',
-            'Description_Log' => 'Modification absence ID : ' . $id,
-            'IpAdresse_Log'   => $this->request->getIPAddress(),
-            'DateHeure_Log'   => date('Y-m-d H:i:s'),
-            'id_Emp'          => $idEmp,
-        ]);
-
-        return redirect()->to('absence/show/' . $id)
-                         ->with('success', 'Absence modifiée avec succès.');
+    if (!$absence || $absence['id_Emp'] != $idEmp) {
+        return redirect()->to('absence')->with('error', 'Accès refusé.');
     }
+
+    if (!$this->peutModifier($absence)) {
+        return redirect()->to('absence/show/' . $id)
+                         ->with('error', 'Impossible de modifier cette absence.');
+    }
+
+    $debut = $this->request->getPost('DateDebut_Abs');
+    $fin   = $this->request->getPost('DateFin_Abs');
+
+    if ($fin && $fin < $debut) {
+        return redirect()->back()->withInput()
+                         ->with('error', 'La date de fin doit être après la date de début.');
+    }
+
+    $this->model->update($id, [
+        'id_TAbs'       => $this->request->getPost('id_TAbs'),
+        'DateDebut_Abs' => $debut,
+        'DateFin_Abs'   => $fin ?: null,
+        'Motif_Abs'     => $this->request->getPost('Motif_Abs'),
+        'Rapport_Abs'   => $this->request->getPost('Rapport_Abs'),
+    ]);
+
+    // ── Notification de modification ──
+    $lien      = base_url('absence/show/' . $id);
+    $demandeur = (new EmployeModel())->find($idEmp);
+    $nomEmp    = $demandeur['Nom_Emp'] . ' ' . $demandeur['Prenom_Emp'];
+    $periode   = date('d/m/Y', strtotime($debut))
+                 . ($fin ? ' au ' . date('d/m/Y', strtotime($fin)) : '');
+    $chefsDir  = $this->getChefsDirIds($demandeur['id_Dir']);
+
+    if (!empty($chefsDir)) {
+        $this->notif->envoyerMultiple(
+            $chefsDir,
+            'Déclaration d\'absence modifiée',
+            $nomEmp . ' a modifié sa déclaration d\'absence : ' . $periode . '.',
+            'absence', $lien, $idEmp
+        );
+    }
+    $this->notif->envoyerMultiple(
+        $this->getRHIds(),
+        'Déclaration d\'absence modifiée',
+        $nomEmp . ' a modifié sa déclaration d\'absence : ' . $periode . '.',
+        'absence', $lien, $idEmp
+    );
+
+    $this->log->insert([
+        'Action_Log'      => 'UPDATE',
+        'Module_Log'      => 'Absence',
+        'Description_Log' => 'Modification absence ID : ' . $id,
+        'IpAdresse_Log'   => $this->request->getIPAddress(),
+        'DateHeure_Log'   => date('Y-m-d H:i:s'),
+        'id_Emp'          => $idEmp,
+    ]);
+
+    return redirect()->to('absence/show/' . $id)->with('success', 'Absence modifiée avec succès.');
+}
 
     // ── DELETE ────────────────────────────────────────────────
     public function delete($id)
     {
         $idEmp   = $this->idEmp();
+        $idPfl   = $this->idPfl();
         $absence = $this->model->find($id);
 
         if (!$absence) {
             return redirect()->to('absence')->with('error', 'Absence introuvable.');
         }
 
-        if ($absence['id_Emp'] != $idEmp) {
-            return redirect()->to('absence')->with('error', 'Accès refusé.');
-        }
-
-        if ($absence['Statut_Abs'] != 'en_attente') {
-            return redirect()->to('absence')
-                             ->with('error', 'Impossible de supprimer une absence déjà traitée.');
+        if ($idPfl != 1) {
+            if ($absence['id_Emp'] != $idEmp) {
+                return redirect()->to('absence')->with('error', 'Accès refusé.');
+            }
+            if (!$this->peutModifier($absence)) {
+                return redirect()->to('absence/show/' . $id)
+                                 ->with('error', 'Impossible de supprimer une absence déjà traitée.');
+            }
         }
 
         $this->model->delete($id);
@@ -432,12 +498,165 @@ class AbsenceController extends BaseController
             'id_Emp'          => $idEmp,
         ]);
 
-        return redirect()->to('absence')
-                         ->with('success', 'Absence supprimée.');
+        return redirect()->to('absence')->with('success', 'Absence supprimée.');
     }
 
     // ══════════════════════════════════════════════════════════
-    // WORKFLOW RH — étape 1
+    // WORKFLOW CHEF — étape 1 : approuver / refuser
+    // ══════════════════════════════════════════════════════════
+
+    public function approuver($id)
+    {
+        if ($this->idPfl() != 2) {
+            return redirect()->to('absence')->with('error', 'Accès refusé.');
+        }
+
+        $absence = $this->model->find($id);
+
+        if (!$absence || $absence['Statut_Abs'] != 'en_attente') {
+            return redirect()->to('absence')->with('error', 'Action impossible.');
+        }
+
+        $chef    = (new EmployeModel())->find($this->idEmp());
+        $employe = (new EmployeModel())->find($absence['id_Emp']);
+
+        if ($absence['id_Emp'] == $this->idEmp()) {
+            return redirect()->to('absence')
+                             ->with('error', 'Vous ne pouvez pas approuver votre propre absence.');
+        }
+
+        if ($employe['id_Dir'] != $chef['id_Dir']) {
+            return redirect()->to('absence')
+                             ->with('error', 'Accès refusé. Cet employé n\'est pas dans votre direction.');
+        }
+
+        $lien = base_url('absence/show/' . $id);
+
+        // Cas spécial : demandeur est RH → Chef = valideur final
+        if ((int) $employe['id_Pfl'] === 1) {
+            $this->model->update($id, [
+                'Statut_Abs'           => 'valide_rh',
+                'DateDecisionDir_Abs'  => date('Y-m-d H:i:s'),
+                'DateValidationRH_Abs' => date('Y-m-d H:i:s'),
+                'CommentaireDir_Abs'   => null,
+                'id_Emp_ValidDir'      => $this->idEmp(),
+            ]);
+
+            $this->notif->envoyer($absence['id_Emp'], 'Votre absence est validée !',
+                'Votre déclaration d\'absence du '
+                . date('d/m/Y', strtotime($absence['DateDebut_Abs']))
+                . ($absence['DateFin_Abs'] ? ' au ' . date('d/m/Y', strtotime($absence['DateFin_Abs'])) : '')
+                . ' a été validée par votre Chef de Direction.',
+                'absence', $lien, $this->idEmp());
+
+            $this->log->insert([
+                'Action_Log'      => 'VALIDATE_CHEF_FINAL',
+                'Module_Log'      => 'Absence',
+                'Description_Log' => 'Validation finale Chef (demandeur RH) absence ID : ' . $id,
+                'IpAdresse_Log'   => $this->request->getIPAddress(),
+                'DateHeure_Log'   => date('Y-m-d H:i:s'),
+                'id_Emp'          => $this->idEmp(),
+            ]);
+
+            return redirect()->to('absence/show/' . $id)->with('success', 'Absence validée définitivement.');
+        }
+
+        // Cas normal : transmis au RH
+        $this->model->update($id, [
+            'Statut_Abs'          => 'approuve_chef',
+            'DateDecisionDir_Abs' => date('Y-m-d H:i:s'),
+            'CommentaireDir_Abs'  => null,
+            'id_Emp_ValidDir'     => $this->idEmp(),
+        ]);
+
+        $this->notif->envoyerMultiple($this->getRHIds(), 'Absence approuvée par le Chef - à valider',
+            'L\'absence de ' . $employe['Nom_Emp'] . ' ' . $employe['Prenom_Emp']
+            . ' a été approuvée par le Chef de Direction et attend votre validation finale.',
+            'absence', $lien, $this->idEmp());
+
+        $this->notif->envoyer($absence['id_Emp'], 'Votre absence est en cours de validation',
+            'Votre déclaration d\'absence a été approuvée par votre Chef de Direction '
+            . 'et transmise au RH pour validation finale.',
+            'absence', $lien, $this->idEmp());
+
+        $this->log->insert([
+            'Action_Log'      => 'APPROVE_CHEF',
+            'Module_Log'      => 'Absence',
+            'Description_Log' => 'Approbation Chef absence ID : ' . $id,
+            'IpAdresse_Log'   => $this->request->getIPAddress(),
+            'DateHeure_Log'   => date('Y-m-d H:i:s'),
+            'id_Emp'          => $this->idEmp(),
+        ]);
+
+        return redirect()->to('absence/show/' . $id)
+                         ->with('success', 'Absence approuvée et transmise au RH pour validation finale.');
+    }
+
+    public function refuser($id)
+    {
+        if ($this->idPfl() != 2) {
+            return redirect()->to('absence')->with('error', 'Accès refusé.');
+        }
+
+        $absence = $this->model->find($id);
+
+        if (!$absence || $absence['Statut_Abs'] != 'en_attente') {
+            return redirect()->to('absence')->with('error', 'Action impossible.');
+        }
+
+        $chef    = (new EmployeModel())->find($this->idEmp());
+        $employe = (new EmployeModel())->find($absence['id_Emp']);
+
+        if ($absence['id_Emp'] == $this->idEmp()) {
+            return redirect()->to('absence')
+                             ->with('error', 'Vous ne pouvez pas refuser votre propre absence.');
+        }
+
+        if ($employe['id_Dir'] != $chef['id_Dir']) {
+            return redirect()->to('absence')
+                             ->with('error', 'Accès refusé. Cet employé n\'est pas dans votre direction.');
+        }
+
+        $commentaire = $this->request->getPost('commentaire');
+
+        if (empty($commentaire)) {
+            return redirect()->back()->with('error', 'Un motif de refus est obligatoire.');
+        }
+
+        $this->model->update($id, [
+            'Statut_Abs'          => 'rejete_chef',
+            'DateDecisionDir_Abs' => date('Y-m-d H:i:s'),
+            'CommentaireDir_Abs'  => $commentaire,
+            'id_Emp_ValidDir'     => $this->idEmp(),
+        ]);
+
+        $lien = base_url('absence/show/' . $id);
+
+        $this->notif->envoyer($absence['id_Emp'], 'Votre absence a été refusée',
+            'Votre déclaration d\'absence a été refusée par votre Chef de Direction. Motif : ' . $commentaire,
+            'absence', $lien, $this->idEmp());
+
+        if ((int) $employe['id_Pfl'] !== 1) {
+            $this->notif->envoyerMultiple($this->getRHIds(), 'Absence refusée par le Chef',
+                'L\'absence de ' . $employe['Nom_Emp'] . ' ' . $employe['Prenom_Emp']
+                . ' a été refusée par le Chef de Direction. Motif : ' . $commentaire,
+                'absence', $lien, $this->idEmp());
+        }
+
+        $this->log->insert([
+            'Action_Log'      => 'REJECT_CHEF',
+            'Module_Log'      => 'Absence',
+            'Description_Log' => 'Refus Chef absence ID : ' . $id . ' — ' . $commentaire,
+            'IpAdresse_Log'   => $this->request->getIPAddress(),
+            'DateHeure_Log'   => date('Y-m-d H:i:s'),
+            'id_Emp'          => $this->idEmp(),
+        ]);
+
+        return redirect()->to('absence/show/' . $id)->with('success', 'Absence refusée. L\'employé a été notifié.');
+    }
+
+    // ══════════════════════════════════════════════════════════
+    // WORKFLOW RH — étape 2 : valider / rejeter
     // ══════════════════════════════════════════════════════════
 
     public function validerRH($id)
@@ -448,7 +667,7 @@ class AbsenceController extends BaseController
 
         $absence = $this->model->find($id);
 
-        if (!$absence || $absence['Statut_Abs'] != 'en_attente') {
+        if (!$absence || $absence['Statut_Abs'] != 'approuve_chef') {
             return redirect()->to('absence')->with('error', 'Action impossible.');
         }
 
@@ -460,28 +679,27 @@ class AbsenceController extends BaseController
         $this->model->update($id, [
             'Statut_Abs'           => 'valide_rh',
             'DateValidationRH_Abs' => date('Y-m-d H:i:s'),
-            'CommentaireRH_Abs'    => $this->request->getPost('commentaire'),
+            'CommentaireRH_Abs'    => null,
             'id_Emp_ValidRH'       => $this->idEmp(),
         ]);
 
-        $employe = (new EmployeModel())->find($absence['id_Emp']);
-        $lien    = base_url('absence/show/' . $id);
+        $employe  = (new EmployeModel())->find($absence['id_Emp']);
+        $lien     = base_url('absence/show/' . $id);
+        $chefsDir = $this->getChefsDirIds($employe['id_Dir']);
 
-        $this->notif->envoyerMultiple(
-            $this->getChefIds(),
-            'Absence à approuver',
-            'L\'absence de ' . $employe['Nom_Emp'] . ' ' . $employe['Prenom_Emp']
-            . ' a été validée par le RH et attend votre approbation.',
-            'absence', $lien, $this->idEmp()
-        );
+        $this->notif->envoyer($absence['id_Emp'], 'Votre absence est validée !',
+            'Votre déclaration d\'absence du '
+            . date('d/m/Y', strtotime($absence['DateDebut_Abs']))
+            . ($absence['DateFin_Abs'] ? ' au ' . date('d/m/Y', strtotime($absence['DateFin_Abs'])) : '')
+            . ' a été validée définitivement par le RH.',
+            'absence', $lien, $this->idEmp());
 
-        $this->notif->envoyer(
-            $absence['id_Emp'],
-            'Votre absence est en cours de traitement',
-            'Votre déclaration d\'absence a été validée par le RH '
-            . 'et transmise à votre Chef de Direction.',
-            'absence', $lien, $this->idEmp()
-        );
+        if (!empty($chefsDir)) {
+            $this->notif->envoyerMultiple($chefsDir, 'Absence validée par le RH',
+                'L\'absence de ' . $employe['Nom_Emp'] . ' ' . $employe['Prenom_Emp']
+                . ' a été validée définitivement par le RH.',
+                'absence', $lien, $this->idEmp());
+        }
 
         $this->log->insert([
             'Action_Log'      => 'VALIDATE_RH',
@@ -493,7 +711,7 @@ class AbsenceController extends BaseController
         ]);
 
         return redirect()->to('absence/show/' . $id)
-                         ->with('success', 'Absence validée et transmise au Chef de Direction.');
+                         ->with('success', 'Absence validée définitivement. L\'employé a été notifié.');
     }
 
     public function rejeterRH($id)
@@ -504,7 +722,7 @@ class AbsenceController extends BaseController
 
         $absence = $this->model->find($id);
 
-        if (!$absence || $absence['Statut_Abs'] != 'en_attente') {
+        if (!$absence || $absence['Statut_Abs'] != 'approuve_chef') {
             return redirect()->to('absence')->with('error', 'Action impossible.');
         }
 
@@ -526,14 +744,20 @@ class AbsenceController extends BaseController
             'id_Emp_ValidRH'       => $this->idEmp(),
         ]);
 
-        $lien = base_url('absence/show/' . $id);
+        $employe  = (new EmployeModel())->find($absence['id_Emp']);
+        $lien     = base_url('absence/show/' . $id);
+        $chefsDir = $this->getChefsDirIds($employe['id_Dir']);
 
-        $this->notif->envoyer(
-            $absence['id_Emp'],
-            'Votre déclaration d\'absence a été rejetée',
-            'Votre déclaration d\'absence a été rejetée par le RH. Motif : ' . $commentaire,
-            'absence', $lien, $this->idEmp()
-        );
+        $this->notif->envoyer($absence['id_Emp'], 'Votre absence a été rejetée par le RH',
+            'Votre déclaration d\'absence a été rejetée par le RH malgré l\'approbation du Chef. Motif : ' . $commentaire,
+            'absence', $lien, $this->idEmp());
+
+        if (!empty($chefsDir)) {
+            $this->notif->envoyerMultiple($chefsDir, 'Absence rejetée par le RH',
+                'L\'absence de ' . $employe['Nom_Emp'] . ' ' . $employe['Prenom_Emp']
+                . ' a été rejetée par le RH. Motif : ' . $commentaire,
+                'absence', $lien, $this->idEmp());
+        }
 
         $this->log->insert([
             'Action_Log'      => 'REJECT_RH',
@@ -545,130 +769,7 @@ class AbsenceController extends BaseController
         ]);
 
         return redirect()->to('absence/show/' . $id)
-                         ->with('success', 'Absence rejetée. L\'employé a été notifié.');
-    }
-
-    // ══════════════════════════════════════════════════════════
-    // WORKFLOW CHEF — étape 2
-    // ══════════════════════════════════════════════════════════
-
-    public function approuver($id)
-    {
-        if ($this->idPfl() != 2) {
-            return redirect()->to('absence')->with('error', 'Accès refusé.');
-        }
-
-        $absence = $this->model->find($id);
-
-        if (!$absence || $absence['Statut_Abs'] != 'valide_rh') {
-            return redirect()->to('absence')->with('error', 'Action impossible.');
-        }
-
-        if ($absence['id_Emp'] == $this->idEmp()) {
-            return redirect()->to('absence')
-                             ->with('error', 'Vous ne pouvez pas approuver votre propre absence.');
-        }
-
-        $this->model->update($id, [
-            'Statut_Abs'          => 'approuve',
-            'DateDecisionDir_Abs' => date('Y-m-d H:i:s'),
-            'CommentaireDir_Abs'  => $this->request->getPost('commentaire'),
-            'id_Emp_ValidDir'     => $this->idEmp(),
-        ]);
-
-        $employe = (new EmployeModel())->find($absence['id_Emp']);
-        $lien    = base_url('absence/show/' . $id);
-
-        $this->notif->envoyer(
-            $absence['id_Emp'],
-            'Votre absence a été approuvée',
-            'Votre déclaration d\'absence du '
-            . date('d/m/Y', strtotime($absence['DateDebut_Abs']))
-            . ($absence['DateFin_Abs'] ? ' au ' . date('d/m/Y', strtotime($absence['DateFin_Abs'])) : '')
-            . ' a été approuvée par votre Chef de Direction.',
-            'absence', $lien, $this->idEmp()
-        );
-
-        $this->notif->envoyerMultiple(
-            $this->getRHIds(),
-            'Absence approuvée',
-            'L\'absence de ' . $employe['Nom_Emp'] . ' ' . $employe['Prenom_Emp']
-            . ' a été approuvée par le Chef de Direction.',
-            'absence', $lien, $this->idEmp()
-        );
-
-        $this->log->insert([
-            'Action_Log'      => 'APPROVE',
-            'Module_Log'      => 'Absence',
-            'Description_Log' => 'Approbation absence ID : ' . $id,
-            'IpAdresse_Log'   => $this->request->getIPAddress(),
-            'DateHeure_Log'   => date('Y-m-d H:i:s'),
-            'id_Emp'          => $this->idEmp(),
-        ]);
-
-        return redirect()->to('absence/show/' . $id)
-                         ->with('success', 'Absence approuvée. L\'employé et le RH ont été notifiés.');
-    }
-
-    public function refuser($id)
-    {
-        if ($this->idPfl() != 2) {
-            return redirect()->to('absence')->with('error', 'Accès refusé.');
-        }
-
-        $absence = $this->model->find($id);
-
-        if (!$absence || $absence['Statut_Abs'] != 'valide_rh') {
-            return redirect()->to('absence')->with('error', 'Action impossible.');
-        }
-
-        if ($absence['id_Emp'] == $this->idEmp()) {
-            return redirect()->to('absence')
-                             ->with('error', 'Vous ne pouvez pas refuser votre propre absence.');
-        }
-
-        $commentaire = $this->request->getPost('commentaire');
-
-        if (empty($commentaire)) {
-            return redirect()->back()->with('error', 'Un motif de refus est obligatoire.');
-        }
-
-        $this->model->update($id, [
-            'Statut_Abs'          => 'rejete',
-            'DateDecisionDir_Abs' => date('Y-m-d H:i:s'),
-            'CommentaireDir_Abs'  => $commentaire,
-            'id_Emp_ValidDir'     => $this->idEmp(),
-        ]);
-
-        $employe = (new EmployeModel())->find($absence['id_Emp']);
-        $lien    = base_url('absence/show/' . $id);
-
-        $this->notif->envoyer(
-            $absence['id_Emp'],
-            'Votre absence a été refusée',
-            'Votre déclaration d\'absence a été refusée par votre Chef de Direction. Motif : ' . $commentaire,
-            'absence', $lien, $this->idEmp()
-        );
-
-        $this->notif->envoyerMultiple(
-            $this->getRHIds(),
-            'Absence refusée',
-            'L\'absence de ' . $employe['Nom_Emp'] . ' ' . $employe['Prenom_Emp']
-            . ' a été refusée par le Chef de Direction. Motif : ' . $commentaire,
-            'absence', $lien, $this->idEmp()
-        );
-
-        $this->log->insert([
-            'Action_Log'      => 'REJECT',
-            'Module_Log'      => 'Absence',
-            'Description_Log' => 'Refus absence ID : ' . $id . ' — ' . $commentaire,
-            'IpAdresse_Log'   => $this->request->getIPAddress(),
-            'DateHeure_Log'   => date('Y-m-d H:i:s'),
-            'id_Emp'          => $this->idEmp(),
-        ]);
-
-        return redirect()->to('absence/show/' . $id)
-                         ->with('success', 'Absence refusée. L\'employé et le RH ont été notifiés.');
+                         ->with('success', 'Absence rejetée. L\'employé et le chef ont été notifiés.');
     }
 
     // ══════════════════════════════════════════════════════════
@@ -709,8 +810,7 @@ class AbsenceController extends BaseController
         $newName = $fichier->getRandomName();
         $fichier->move(WRITEPATH . 'uploads/absences', $newName);
 
-        // RH → validée automatiquement | Employé/Chef → en_attente
-        $statutPJ       = ($idPfl == 1) ? 'validee'          : 'en_attente';
+        $statutPJ       = ($idPfl == 1) ? 'validee'           : 'en_attente';
         $dateValidation = ($idPfl == 1) ? date('Y-m-d H:i:s') : null;
         $idValidPJ      = ($idPfl == 1) ? $idEmp              : null;
 
@@ -726,13 +826,10 @@ class AbsenceController extends BaseController
         if ($idPfl != 1) {
             $employe = (new EmployeModel())->find($idEmp);
             $lien    = base_url('absence/show/' . $id);
-            $this->notif->envoyerMultiple(
-                $this->getRHIds(),
-                'Pièce justificative à valider',
+            $this->notif->envoyerMultiple($this->getRHIds(), 'Pièce justificative à valider',
                 $employe['Nom_Emp'] . ' ' . $employe['Prenom_Emp']
                 . ' a déposé une pièce justificative pour son absence. Veuillez la valider.',
-                'absence', $lien, $idEmp
-            );
+                'absence', $lien, $idEmp);
         }
 
         $this->log->insert([
@@ -745,7 +842,7 @@ class AbsenceController extends BaseController
         ]);
 
         $msg = ($idPfl == 1)
-            ? 'Pièce justificative ajoutée et validée. L\'absence est désormais justifiée.'
+            ? 'Pièce justificative ajoutée et validée.'
             : 'Pièce justificative déposée. En attente de validation par le RH.';
 
         return redirect()->to('absence/show/' . $id)->with('success', $msg);
@@ -773,24 +870,20 @@ class AbsenceController extends BaseController
         $absence = $this->model->find($pj['id_Abs']);
         $lien    = base_url('absence/show/' . $pj['id_Abs']);
 
-        $this->notif->envoyer(
-            $absence['id_Emp'],
-            'Votre pièce justificative a été validée',
+        $this->notif->envoyer($absence['id_Emp'], 'Votre pièce justificative a été validée',
             'Votre pièce justificative a été validée par le RH. Votre absence est désormais justifiée.',
-            'absence', $lien, $this->idEmp()
-        );
+            'absence', $lien, $this->idEmp());
 
         $this->log->insert([
             'Action_Log'      => 'VALIDATE_PJ',
             'Module_Log'      => 'Absence',
-            'Description_Log' => 'Validation PJ ID : ' . $idPJ . ' — absence ID : ' . $pj['id_Abs'],
+            'Description_Log' => 'Validation PJ ID : ' . $idPJ,
             'IpAdresse_Log'   => $this->request->getIPAddress(),
             'DateHeure_Log'   => date('Y-m-d H:i:s'),
             'id_Emp'          => $this->idEmp(),
         ]);
 
-        return redirect()->to('absence/show/' . $pj['id_Abs'])
-                         ->with('success', 'Pièce justificative validée. L\'absence est désormais justifiée.');
+        return redirect()->to('absence/show/' . $pj['id_Abs'])->with('success', 'Pièce justificative validée.');
     }
 
     public function rejeterPJ($idPJ)
@@ -822,13 +915,10 @@ class AbsenceController extends BaseController
         $absence = $this->model->find($pj['id_Abs']);
         $lien    = base_url('absence/show/' . $pj['id_Abs']);
 
-        $this->notif->envoyer(
-            $absence['id_Emp'],
-            'Votre pièce justificative a été rejetée',
+        $this->notif->envoyer($absence['id_Emp'], 'Votre pièce justificative a été rejetée',
             'Votre pièce justificative a été rejetée par le RH. Motif : ' . $commentaire
             . '. Vous pouvez en déposer une nouvelle.',
-            'absence', $lien, $this->idEmp()
-        );
+            'absence', $lien, $this->idEmp());
 
         $this->log->insert([
             'Action_Log'      => 'REJECT_PJ',

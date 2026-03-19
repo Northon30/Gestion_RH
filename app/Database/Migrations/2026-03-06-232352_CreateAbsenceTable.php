@@ -37,15 +37,36 @@ class CreateAbsenceTable extends Migration
             ],
             'Statut_Abs' => [
                 'type'       => 'ENUM',
-                'constraint' => ['en_attente','valide_rh','rejete_rh','approuve','rejete'],
-                'default'    => 'en_attente',
-                'null'       => false,
+                'constraint' => [
+                    'en_attente',
+                    'approuve_chef',
+                    'rejete_chef',
+                    'valide_rh',
+                    'rejete_rh',
+                    'expire',
+                ],
+                'default' => 'en_attente',
+                'null'    => false,
             ],
-            'CommentaireRH_Abs' => [
+
+            // ── Décision Chef de Direction ─────────────────────
+            'CommentaireDir_Abs' => [
                 'type' => 'TEXT',
                 'null' => true,
             ],
-            'CommentaireDir_Abs' => [
+            'DateDecisionDir_Abs' => [
+                'type' => 'DATETIME',
+                'null' => true,
+            ],
+            'id_Emp_ValidDir' => [
+                'type'       => 'INT',
+                'constraint' => 11,
+                'unsigned'   => true,
+                'null'       => true,
+            ],
+
+            // ── Décision RH ───────────────────────────────────
+            'CommentaireRH_Abs' => [
                 'type' => 'TEXT',
                 'null' => true,
             ],
@@ -53,10 +74,14 @@ class CreateAbsenceTable extends Migration
                 'type' => 'DATETIME',
                 'null' => true,
             ],
-            'DateDecisionDir_Abs' => [
-                'type' => 'DATETIME',
-                'null' => true,
+            'id_Emp_ValidRH' => [
+                'type'       => 'INT',
+                'constraint' => 11,
+                'unsigned'   => true,
+                'null'       => true,
             ],
+
+            // ── Clés étrangères ───────────────────────────────
             'id_Emp' => [
                 'type'       => 'INT',
                 'constraint' => 11,
@@ -69,25 +94,13 @@ class CreateAbsenceTable extends Migration
                 'unsigned'   => true,
                 'null'       => false,
             ],
-            'id_Emp_ValidRH' => [
-                'type'       => 'INT',
-                'constraint' => 11,
-                'unsigned'   => true,
-                'null'       => true,
-            ],
-            'id_Emp_ValidDir' => [
-                'type'       => 'INT',
-                'constraint' => 11,
-                'unsigned'   => true,
-                'null'       => true,
-            ],
         ]);
 
         $this->forge->addPrimaryKey('id_Abs');
         $this->forge->addForeignKey('id_Emp',          'employe',      'id_Emp',  'CASCADE',  'CASCADE');
         $this->forge->addForeignKey('id_TAbs',         'type_absence', 'id_TAbs', 'CASCADE',  'CASCADE');
-        $this->forge->addForeignKey('id_Emp_ValidRH',  'employe',      'id_Emp',  'SET NULL', 'CASCADE');
         $this->forge->addForeignKey('id_Emp_ValidDir', 'employe',      'id_Emp',  'SET NULL', 'CASCADE');
+        $this->forge->addForeignKey('id_Emp_ValidRH',  'employe',      'id_Emp',  'SET NULL', 'CASCADE');
         $this->forge->createTable('absence', false, ['ENGINE' => 'InnoDB']);
     }
 

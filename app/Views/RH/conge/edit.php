@@ -19,12 +19,15 @@
         --c-soft:          rgba(255,255,255,0.55);
     }
 
+    .page-content { overflow-x: hidden; }
+
+    /* ===== FORM CARD — pleine largeur ===== */
     .form-card {
         background: var(--c-surface);
         border: 1px solid var(--c-border);
         border-radius: 14px;
         overflow: hidden;
-        max-width: 720px;
+        width: 100%;
     }
 
     .form-card-header {
@@ -32,6 +35,7 @@
         border-bottom: 1px solid var(--c-border);
         position: relative;
         display: flex; align-items: center; justify-content: space-between;
+        gap: 12px; flex-wrap: wrap;
     }
 
     .form-card-header::before {
@@ -66,6 +70,7 @@
         padding: 9px 12px; outline: none; width: 100%;
         transition: border-color 0.2s;
         font-family: 'Segoe UI', sans-serif;
+        height: 38px;
     }
 
     .form-control-dark:focus { border-color: var(--c-orange-border); }
@@ -73,15 +78,15 @@
     .form-control-dark option { background: #1a1a1a; }
     .form-control-dark.is-invalid { border-color: rgba(224,82,82,0.5); }
 
+    /* ===== BADGES STATUT ===== */
     .badge-statut {
-        display: inline-flex; align-items: center; gap: 4px;
-        padding: 3px 10px; border-radius: 20px;
-        font-size: 0.67rem; font-weight: 700;
-        background: rgba(255,193,7,0.1);
-        border: 1px solid rgba(255,193,7,0.3);
-        color: #ffc107;
+        display: inline-flex; align-items: center; gap: 5px;
+        padding: 4px 12px; border-radius: 20px; font-size: 0.72rem; font-weight: 700;
     }
+    .bs-attente       { background: rgba(255,193,7,0.10);   border: 1px solid rgba(255,193,7,0.30);   color: #ffc107; }
+    .bs-approuve-chef { background: rgba(58,123,213,0.10);  border: 1px solid rgba(58,123,213,0.25);  color: #5B9BF0; }
 
+    /* ===== NOTICE ===== */
     .notice-info {
         background: var(--c-blue-pale); border: 1px solid var(--c-blue-border);
         border-radius: 10px; padding: 11px 16px;
@@ -90,6 +95,7 @@
         margin-bottom: 18px;
     }
 
+    /* ===== APERÇU DURÉE ===== */
     .duree-preview {
         background: var(--c-blue-pale); border: 1px solid var(--c-blue-border);
         border-radius: 8px; padding: 8px 14px;
@@ -99,6 +105,16 @@
 
     .duree-preview.visible { display: flex; }
 
+    /* ===== SECTION DIVIDER ===== */
+    .section-divider {
+        font-size: 0.68rem; font-weight: 700; color: var(--c-orange);
+        text-transform: uppercase; letter-spacing: 0.8px;
+        padding-bottom: 8px; border-bottom: 1px solid var(--c-border);
+        margin-bottom: 16px; margin-top: 4px;
+        display: flex; align-items: center; gap: 8px;
+    }
+
+    /* ===== ALERTS ===== */
     .alert-errors {
         background: var(--c-red-pale); border: 1px solid var(--c-red-border);
         border-radius: 10px; padding: 12px 16px; margin-bottom: 18px;
@@ -107,8 +123,9 @@
     .alert-errors p  { color: #ff8080; font-size: 0.8rem; margin: 0; }
     .alert-errors ul { color: #ff8080; font-size: 0.8rem; margin: 6px 0 0 16px; padding: 0; }
 
+    /* ===== ACTIONS ===== */
     .form-actions {
-        display: flex; align-items: center; gap: 10px;
+        display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
         padding: 16px 22px; border-top: 1px solid var(--c-border);
     }
 
@@ -131,40 +148,58 @@
 
     .btn-outline:hover { background: rgba(255,255,255,0.04); color: var(--c-text); }
 
-    .section-divider {
-        font-size: 0.68rem; font-weight: 700; color: var(--c-orange);
-        text-transform: uppercase; letter-spacing: 0.8px;
-        padding-bottom: 8px; border-bottom: 1px solid var(--c-border);
-        margin-bottom: 16px; margin-top: 4px;
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 768px) {
+        .form-card-body { padding: 16px; }
+        .form-actions   { padding: 14px 16px; }
+        .page-header    { flex-direction: column; align-items: flex-start; gap: 10px; }
     }
 
     @media (max-width: 576px) {
-        .form-grid-2 { grid-template-columns: 1fr; }
+        .form-grid-2  { grid-template-columns: 1fr; }
+        .form-actions { flex-direction: column; }
+        .form-actions > * { width: 100%; justify-content: center; }
     }
 </style>
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
 
+<?php
+$statut = $conge['Statut_Cge'];
+
+// Badge dynamique selon le statut réel
+[$bsCls, $bsLabel] = match($statut) {
+    'en_attente'    => ['bs-attente',       'En attente'],
+    'approuve_chef' => ['bs-approuve-chef', 'Approuvé Chef'],
+    default         => ['bs-attente',       'En attente'],
+};
+?>
+
+<!-- PAGE HEADER -->
 <div class="page-header">
     <div>
         <h1><i class="fas fa-pen me-2" style="color:#F5A623;"></i>Modifier la demande de congé</h1>
-        <p>Seules les demandes en attente peuvent être modifiées</p>
+        <p>Demande #<?= $conge['id_Cge'] ?></p>
     </div>
     <a href="<?= base_url('conge/show/' . $conge['id_Cge']) ?>" class="btn-outline">
         <i class="fas fa-arrow-left"></i> Retour
     </a>
 </div>
 
-<div class="notice-info" style="max-width:720px;">
+<!-- Notice -->
+<div class="notice-info">
     <i class="fas fa-info-circle"></i>
-    Modification autorisée uniquement si la demande est encore <strong>En attente</strong>.
-    Une fois traitée, la demande ne peut plus être modifiée.
+    <?php if ($statut === 'approuve_chef'): ?>
+        Modification autorisée — le Chef a auto-approuvé cette demande, mais le RH n'a pas encore agi.
+    <?php else: ?>
+        Modification autorisée — la demande est encore <strong>En attente</strong> de traitement.
+    <?php endif; ?>
 </div>
 
 <!-- Erreurs -->
 <?php if (session()->getFlashdata('errors') || session()->getFlashdata('error')): ?>
-<div class="alert-errors" style="max-width:720px;">
+<div class="alert-errors">
     <?php if (session()->getFlashdata('error')): ?>
     <p><i class="fas fa-exclamation-triangle"></i> <?= esc(session()->getFlashdata('error')) ?></p>
     <?php endif; ?>
@@ -178,12 +213,13 @@
 </div>
 <?php endif; ?>
 
+<!-- FORMULAIRE -->
 <div class="form-card">
     <div class="form-card-header">
         <h5><i class="fas fa-umbrella-beach"></i> Modifier le congé</h5>
-        <span class="badge-statut">
-            <span style="width:5px;height:5px;border-radius:50%;background:#ffc107;display:inline-block;"></span>
-            En attente
+        <span class="badge-statut <?= $bsCls ?>">
+            <span style="width:5px;height:5px;border-radius:50%;background:currentColor;display:inline-block;"></span>
+            <?= $bsLabel ?>
         </span>
     </div>
 
@@ -191,7 +227,7 @@
         <?= csrf_field() ?>
 
         <div class="form-card-body">
-            <div class="section-divider">Informations du congé</div>
+            <div class="section-divider"><i class="fas fa-info-circle"></i> Informations du congé</div>
 
             <div class="form-grid-2" style="margin-bottom:16px;">
                 <div class="form-group">
@@ -210,7 +246,7 @@
                 <div class="form-group">
                     <label class="form-label">Libellé / Motif <span>*</span></label>
                     <input type="text" name="Libelle_Cge" class="form-control-dark"
-                           placeholder="Ex : Congé annuel été 2025"
+                           placeholder="Ex : Congé annuel été 2026"
                            value="<?= old('Libelle_Cge', esc($conge['Libelle_Cge'])) ?>">
                 </div>
             </div>
@@ -261,8 +297,8 @@
 
     function calcDuree() {
         if (!debut.value || !fin.value) { preview.classList.remove('visible'); return; }
-        var d1   = new Date(debut.value);
-        var d2   = new Date(fin.value);
+        var d1 = new Date(debut.value);
+        var d2 = new Date(fin.value);
         if (d2 < d1) { fin.classList.add('is-invalid'); preview.classList.remove('visible'); return; }
         fin.classList.remove('is-invalid');
         var diff = Math.round((d2 - d1) / (1000 * 60 * 60 * 24)) + 1;

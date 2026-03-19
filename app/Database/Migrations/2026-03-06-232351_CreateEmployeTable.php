@@ -15,6 +15,11 @@ class CreateEmployeTable extends Migration
                 'unsigned'       => true,
                 'auto_increment' => true,
             ],
+            'Matricule_Emp' => [
+                'type'       => 'VARCHAR',
+                'constraint' => 50,
+                'null'       => true,
+            ],
             'Nom_Emp' => [
                 'type'       => 'VARCHAR',
                 'constraint' => 100,
@@ -43,7 +48,6 @@ class CreateEmployeTable extends Migration
                 'type'       => 'VARCHAR',
                 'constraint' => 150,
                 'null'       => false,
-                'unique'     => true,
             ],
             'Telephone_Emp' => [
                 'type'       => 'VARCHAR',
@@ -92,14 +96,60 @@ class CreateEmployeTable extends Migration
         ]);
 
         $this->forge->addPrimaryKey('id_Emp');
-        $this->forge->addForeignKey('id_Dir', 'direction', 'id_Dir', 'CASCADE', 'CASCADE');
-        $this->forge->addForeignKey('id_Grd', 'grade', 'id_Grd', 'CASCADE', 'CASCADE');
-        $this->forge->addForeignKey('id_Pfl', 'profil', 'id_Pfl', 'CASCADE', 'CASCADE');
+        $this->forge->addUniqueKey('Email_Emp');
+        $this->forge->addUniqueKey('Matricule_Emp');
+        $this->forge->addKey('id_Dir', false, false, 'employe_id_Dir_foreign');
+        $this->forge->addKey('id_Grd', false, false, 'employe_id_Grd_foreign');
+        $this->forge->addKey('id_Pfl', false, false, 'employe_id_Pfl_foreign');
         $this->forge->createTable('employe', false, ['ENGINE' => 'InnoDB']);
+
+        // FK employe → direction / grade / profil
+        $this->db->query('ALTER TABLE `employe`
+            ADD CONSTRAINT `employe_id_Dir_foreign`
+                FOREIGN KEY (`id_Dir`) REFERENCES `direction`(`id_Dir`) ON DELETE CASCADE ON UPDATE CASCADE,
+            ADD CONSTRAINT `employe_id_Grd_foreign`
+                FOREIGN KEY (`id_Grd`) REFERENCES `grade`(`id_Grd`)     ON DELETE CASCADE ON UPDATE CASCADE,
+            ADD CONSTRAINT `employe_id_Pfl_foreign`
+                FOREIGN KEY (`id_Pfl`) REFERENCES `profil`(`id_Pfl`)    ON DELETE CASCADE ON UPDATE CASCADE
+        ');
+
+        // ── FK demande_formation → employe (maintenant disponible) ──
+        $this->db->query('ALTER TABLE `demande_formation`
+            ADD CONSTRAINT `fk_dfrm_emp`
+                FOREIGN KEY (`id_Emp`)          REFERENCES `employe`(`id_Emp`) ON DELETE CASCADE  ON UPDATE CASCADE,
+            ADD CONSTRAINT `fk_dfrm_valid_dir`
+                FOREIGN KEY (`id_Emp_ValidDir`) REFERENCES `employe`(`id_Emp`) ON DELETE SET NULL ON UPDATE CASCADE,
+            ADD CONSTRAINT `fk_dfrm_valid_rh`
+                FOREIGN KEY (`id_Emp_ValidRH`)  REFERENCES `employe`(`id_Emp`) ON DELETE SET NULL ON UPDATE CASCADE
+        ');
+
+        // ── FK obtenir → employe + competence (maintenant disponibles) ──
+        $this->db->query('ALTER TABLE `obtenir`
+            ADD CONSTRAINT `fk_obt_emp`
+                FOREIGN KEY (`id_Emp`)
+                REFERENCES `employe`(`id_Emp`)
+                ON DELETE CASCADE ON UPDATE CASCADE,
+            ADD CONSTRAINT `fk_obt_cmp`
+                FOREIGN KEY (`id_Cmp`)
+                REFERENCES `competence`(`id_Cmp`)
+                ON DELETE CASCADE ON UPDATE CASCADE
+        ');
     }
 
     public function down()
     {
-        $this->forge->dropTable('employe');
+        // Retirer les FK qui pointent vers employe avant de dropper
+        $this->db->query('ALTER TABLE `demande_formation`
+            DROP FOREIGN KEY `fk_dfrm_emp`,
+            DROP FOREIGN KEY `fk_dfrm_valid_dir`,
+            DROP FOREIGN KEY `fk_dfrm_valid_rh`
+        ');
+
+        $this->db->query('ALTER TABLE `obtenir`
+            DROP FOREIGN KEY `fk_obt_emp`,
+            DROP FOREIGN KEY `fk_obt_cmp`
+        ');
+
+        $this->forge->dropTable('employe', true);
     }
 }

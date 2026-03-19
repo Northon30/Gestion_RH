@@ -91,16 +91,6 @@
     .capacity-fill.high   { background: var(--c-red); }
     .capacity-fill.full   { background: var(--c-red); }
 
-    .badge-inscription {
-        display: inline-flex; align-items: center; gap: 4px;
-        padding: 4px 10px; border-radius: 20px;
-        font-size: 0.72rem; font-weight: 600; white-space: nowrap;
-    }
-    .badge-inscription.inscrit  { background: var(--c-primary-pale); border: 1px solid var(--c-primary-border); color: var(--c-accent); }
-    .badge-inscription.valide   { background: rgba(144,201,127,0.12); border: 1px solid rgba(144,201,127,0.3); color: var(--c-green); }
-    .badge-inscription.annule   { background: rgba(220,53,69,0.12); border: 1px solid rgba(220,53,69,0.3); color: var(--c-red); }
-    .badge-inscription.non      { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--c-muted); }
-
     .badge-period {
         position: absolute; top: 14px; right: 14px;
         padding: 3px 9px; border-radius: 20px;
@@ -122,6 +112,18 @@
         white-space: nowrap;
     }
     .btn-voir:hover { background: rgba(58,123,213,0.2); color: var(--c-accent); }
+
+    .btn-primary {
+        background: var(--c-primary);
+        border: none;
+        color: #fff;
+        border-radius: 8px; padding: 9px 18px;
+        font-size: 0.85rem; font-weight: 600;
+        text-decoration: none;
+        display: inline-flex; align-items: center; gap: 7px;
+        transition: all 0.2s;
+    }
+    .btn-primary:hover { background: var(--c-accent); color: #fff; }
 
     .empty-state { padding: 60px 20px; text-align: center; color: var(--c-muted); }
     .empty-state i { font-size: 2.5rem; display: block; margin-bottom: 12px; opacity: 0.3; }
@@ -150,18 +152,21 @@
 <?= $this->section('content') ?>
 
 <?php
-$today    = date('Y-m-d');
-$aVenir   = array_filter($formations, fn($f) => $f['DateDebut_Frm'] > $today);
-$enCours  = array_filter($formations, fn($f) => $f['DateDebut_Frm'] <= $today && $f['DateFin_Frm'] >= $today);
+$today     = date('Y-m-d');
+$aVenir    = array_filter($formations, fn($f) => $f['DateDebut_Frm'] > $today);
+$enCours   = array_filter($formations, fn($f) => $f['DateDebut_Frm'] <= $today && $f['DateFin_Frm'] >= $today);
 $terminees = array_filter($formations, fn($f) => $f['DateFin_Frm'] < $today);
-$mesInscriptions = array_filter($formations, fn($f) => !empty($f['mon_inscription']));
+$totalInvites = array_sum(array_column($formations, 'nb_invites'));
 ?>
 
 <div class="page-header">
     <div>
         <h1><i class="fas fa-graduation-cap me-2" style="color:var(--c-primary);"></i>Catalogue des Formations</h1>
-        <p>Consultez les formations disponibles et les inscriptions</p>
+        <p>Consultez et gérez les formations</p>
     </div>
+    <a href="<?= base_url('formation/create') ?>" class="btn-primary">
+        <i class="fas fa-plus"></i> Nouvelle formation
+    </a>
 </div>
 
 <?php if (session()->getFlashdata('success')): ?>
@@ -195,10 +200,10 @@ $mesInscriptions = array_filter($formations, fn($f) => !empty($f['mon_inscriptio
         </div>
     </div>
     <div class="stat-pill">
-        <i class="fas fa-user-check"></i>
+        <i class="fas fa-user-plus"></i>
         <div>
-            <div class="sp-val" style="color:var(--c-orange);"><?= count($mesInscriptions) ?></div>
-            <div class="sp-label">Mes inscriptions</div>
+            <div class="sp-val" style="color:var(--c-orange);"><?= $totalInvites ?></div>
+            <div class="sp-label">Total invités</div>
         </div>
     </div>
 </div>
@@ -215,12 +220,13 @@ $mesInscriptions = array_filter($formations, fn($f) => !empty($f['mon_inscriptio
         </select>
     </div>
     <div class="filter-group">
-        <label>Inscription</label>
-        <select id="f-inscription">
-            <option value="">Toutes</option>
-            <option value="inscrit">Inscrit</option>
-            <option value="valide">Validé</option>
-            <option value="non">Non inscrit</option>
+        <label>Statut</label>
+        <select id="f-statut">
+            <option value="">Tous</option>
+            <option value="planifiee">Planifiée</option>
+            <option value="en_cours">En cours</option>
+            <option value="terminee">Terminée</option>
+            <option value="annulee">Annulée</option>
         </select>
     </div>
     <div class="filter-group">
@@ -238,26 +244,22 @@ $mesInscriptions = array_filter($formations, fn($f) => !empty($f['mon_inscriptio
 <div class="formations-grid" id="formations-grid">
     <?php foreach ($formations as $f): ?>
     <?php
-    $pct      = $f['Capacite_Frm'] > 0 ? round($f['nb_inscrits'] / $f['Capacite_Frm'] * 100) : 0;
+    $pct      = $f['Capacite_Frm'] > 0 ? round($f['nb_valides'] / $f['Capacite_Frm'] * 100) : 0;
     $fillClass = $pct >= 100 ? 'full' : ($pct >= 75 ? 'high' : ($pct >= 40 ? 'medium' : 'low'));
 
-    if ($f['DateDebut_Frm'] > $today)       { $periode = 'avenir';  $periodeLabel = 'À venir'; }
-    elseif ($f['DateFin_Frm'] >= $today)    { $periode = 'encours'; $periodeLabel = 'En cours'; }
-    else                                     { $periode = 'passe';   $periodeLabel = 'Terminée'; }
-
-    $ins    = $f['mon_inscription'];
-    $insStr = $ins ? $ins['Stt_Ins'] : 'non';
-    $insLab = ['inscrit'=>'Inscrit','valide'=>'Confirmé','annule'=>'Annulé','non'=>'Non inscrit'];
+    if ($f['DateDebut_Frm'] > $today)    { $periode = 'avenir';  $periodeLabel = 'À venir'; }
+    elseif ($f['DateFin_Frm'] >= $today) { $periode = 'encours'; $periodeLabel = 'En cours'; }
+    else                                  { $periode = 'passe';   $periodeLabel = 'Terminée'; }
     ?>
     <div class="formation-card"
          data-periode="<?= $periode ?>"
-         data-inscription="<?= $insStr ?>"
-         data-search="<?= strtolower($f['Description_Frm'].' '.$f['Formateur_Frm'].' '.$f['Lieu_Frm']) ?>">
+         data-statut="<?= esc($f['Statut_Frm']) ?>"
+         data-search="<?= strtolower($f['Titre_Frm'].' '.$f['Formateur_Frm'].' '.$f['Lieu_Frm']) ?>">
 
         <span class="badge-period <?= $periode ?>"><?= $periodeLabel ?></span>
 
         <div class="formation-card-top">
-            <div class="formation-title"><?= esc($f['Description_Frm']) ?></div>
+            <div class="formation-title"><?= esc($f['Titre_Frm']) ?></div>
             <div class="formation-meta">
                 <div class="meta-item">
                     <i class="fas fa-calendar-alt"></i>
@@ -274,13 +276,17 @@ $mesInscriptions = array_filter($formations, fn($f) => !empty($f['mon_inscriptio
                     <i class="fas fa-chalkboard-teacher"></i>
                     <?= esc($f['Formateur_Frm']) ?>
                 </div>
+                <div class="meta-item">
+                    <i class="fas fa-user-plus"></i>
+                    <?= $f['nb_invites'] ?> invité(s)
+                </div>
             </div>
         </div>
 
         <div class="formation-card-bottom">
             <div class="capacity-bar-wrap">
                 <div class="capacity-label">
-                    <span><?= $f['nb_inscrits'] ?> / <?= $f['Capacite_Frm'] ?> inscrits</span>
+                    <span><?= $f['nb_valides'] ?> / <?= $f['Capacite_Frm'] ?> confirmés</span>
                     <span><?= $pct ?>%</span>
                 </div>
                 <div class="capacity-bar">
@@ -288,9 +294,6 @@ $mesInscriptions = array_filter($formations, fn($f) => !empty($f['mon_inscriptio
                 </div>
             </div>
             <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
-                <?php if ($ins): ?>
-                <span class="badge-inscription <?= $ins['Stt_Ins'] ?>"><?= $insLab[$ins['Stt_Ins']] ?? $ins['Stt_Ins'] ?></span>
-                <?php endif; ?>
                 <a href="<?= base_url('formation/show/'.$f['id_Frm']) ?>" class="btn-voir">
                     <i class="fas fa-eye"></i> Voir
                 </a>
@@ -311,17 +314,17 @@ $mesInscriptions = array_filter($formations, fn($f) => !empty($f['mon_inscriptio
 <?= $this->section('js') ?>
 <script>
 function applyFiltres() {
-    var periode     = document.getElementById('f-periode').value;
-    var inscription = document.getElementById('f-inscription').value;
-    var search      = document.getElementById('f-search').value.toLowerCase();
-    var cards       = document.querySelectorAll('.formation-card');
-    var visible     = 0;
+    var periode = document.getElementById('f-periode').value;
+    var statut  = document.getElementById('f-statut').value;
+    var search  = document.getElementById('f-search').value.toLowerCase();
+    var cards   = document.querySelectorAll('.formation-card');
+    var visible = 0;
 
     cards.forEach(function(card) {
         var ok = true;
-        if (periode     && card.dataset.periode     !== periode)     ok = false;
-        if (inscription && card.dataset.inscription !== inscription) ok = false;
-        if (search      && !card.dataset.search.includes(search))   ok = false;
+        if (periode && card.dataset.periode !== periode) ok = false;
+        if (statut  && card.dataset.statut  !== statut)  ok = false;
+        if (search  && !card.dataset.search.includes(search)) ok = false;
         card.style.display = ok ? '' : 'none';
         if (ok) visible++;
     });
@@ -330,13 +333,13 @@ function applyFiltres() {
 }
 
 function resetFiltres() {
-    document.getElementById('f-periode').value     = '';
-    document.getElementById('f-inscription').value = '';
-    document.getElementById('f-search').value      = '';
+    document.getElementById('f-periode').value = '';
+    document.getElementById('f-statut').value  = '';
+    document.getElementById('f-search').value  = '';
     applyFiltres();
 }
 
-['f-periode','f-inscription','f-search'].forEach(function(id) {
+['f-periode', 'f-statut', 'f-search'].forEach(function(id) {
     document.getElementById(id).addEventListener('input', applyFiltres);
 });
 </script>

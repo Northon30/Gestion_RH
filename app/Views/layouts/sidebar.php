@@ -1,31 +1,19 @@
 <?php
 $idPfl = (int) session()->get('id_Pfl');
 
-// Palette par profil
-$theme = match($idPfl) {
-    1 => [
-        'color'        => '#F5A623',
-        'color_rgb'    => '245,166,35',
-        'btn_text'     => '#111',
-    ],
-    2 => [
-        'color'        => '#3A7BD5',
-        'color_rgb'    => '58,123,213',
-        'btn_text'     => '#fff',
-    ],
-    default => [
-        'color'        => '#6BAF6B',
-        'color_rgb'    => '107,175,107',
-        'btn_text'     => '#fff',
-    ],
-};
+if ($idPfl === 1) {
+    $theme = ['color' => '#F5A623', 'color_rgb' => '245,166,35', 'btn_text' => '#111'];
+} elseif ($idPfl === 2) {
+    $theme = ['color' => '#3A7BD5', 'color_rgb' => '58,123,213', 'btn_text' => '#fff'];
+} else {
+    $theme = ['color' => '#6BAF6B', 'color_rgb' => '107,175,107', 'btn_text' => '#fff'];
+}
 
 $c   = $theme['color'];
 $rgb = $theme['color_rgb'];
 ?>
 
 <style>
-/* ── Variables thème ─────────────────────────────────────────── */
 :root {
     --c-theme:        <?= $c ?>;
     --c-theme-rgb:    <?= $rgb ?>;
@@ -35,7 +23,6 @@ $rgb = $theme['color_rgb'];
     --c-theme-active: rgba(<?= $rgb ?>, 0.18);
 }
 
-/* ── Sidebar ─────────────────────────────────────────────────── */
 .sidebar {
     width: 250px;
     min-height: 100vh;
@@ -74,12 +61,11 @@ $rgb = $theme['color_rgb'];
     font-size: 1.2rem; flex-shrink: 0;
 }
 
-.user-name  { color: #fff; font-size: 0.85rem; font-weight: 600; }
-.user-role  { color: var(--c-theme); font-size: 0.72rem; font-weight: 500; }
+.user-name { color: #fff; font-size: 0.85rem; font-weight: 600; }
+.user-role { color: var(--c-theme); font-size: 0.72rem; font-weight: 500; }
 
 .sidebar-divider { border-color: rgba(255,255,255,0.06); margin: 0 15px; }
 
-/* ── Nav ─────────────────────────────────────────────────────── */
 .sidebar-nav {
     flex: 1;
     padding: 10px 0;
@@ -90,7 +76,6 @@ $rgb = $theme['color_rgb'];
 .sidebar-nav::-webkit-scrollbar       { width: 3px; }
 .sidebar-nav::-webkit-scrollbar-thumb { background: var(--c-theme-border); border-radius: 3px; }
 
-/* Item normal */
 .nav-item {
     display: flex; align-items: center; gap: 12px;
     padding: 11px 20px;
@@ -108,7 +93,6 @@ $rgb = $theme['color_rgb'];
     border-left-color: rgba(<?= $rgb ?>, 0.4);
 }
 
-/* ── ACTIF ───────────────────────────────────────────────────── */
 .nav-item.active {
     background: var(--c-theme-pale);
     color: var(--c-theme);
@@ -123,7 +107,6 @@ $rgb = $theme['color_rgb'];
     border-left-color: var(--c-theme);
 }
 
-/* Indicateur point sur item actif */
 .nav-item.active::after {
     content: '';
     position: absolute;
@@ -137,7 +120,17 @@ $rgb = $theme['color_rgb'];
 
 .nav-item i { width: 18px; text-align: center; font-size: 0.9rem; }
 
-/* Group title */
+/* ── Sous-label (chip) pour le lien employés du Chef ── */
+.nav-item .nav-chip {
+    margin-left: auto;
+    font-size: 0.6rem; font-weight: 700;
+    padding: 2px 7px; border-radius: 10px;
+    background: rgba(<?= $rgb ?>, 0.15);
+    border: 1px solid rgba(<?= $rgb ?>, 0.25);
+    color: var(--c-theme);
+    white-space: nowrap;
+}
+
 .nav-group-title {
     display: flex; align-items: center; justify-content: space-between;
     padding: 11px 20px;
@@ -173,10 +166,9 @@ $rgb = $theme['color_rgb'];
 .chevron { font-size: 0.7rem; transition: transform 0.3s; }
 .chevron.open { transform: rotate(180deg); }
 
-.nav-group-items         { display: none; background: rgba(0,0,0,0.2); }
-.nav-group-items.open    { display: block; }
+.nav-group-items      { display: none; background: rgba(0,0,0,0.2); }
+.nav-group-items.open { display: block; }
 
-/* Subitem */
 .nav-subitem {
     display: flex; align-items: center; gap: 10px;
     padding: 9px 20px 9px 45px;
@@ -218,7 +210,6 @@ $rgb = $theme['color_rgb'];
     opacity: 0.7;
 }
 
-/* Logout */
 .sidebar-logout {
     padding: 15px;
     border-top: 1px solid rgba(255,255,255,0.06);
@@ -239,7 +230,6 @@ $rgb = $theme['color_rgb'];
     color: #ff6b6b;
 }
 
-/* ── Overlay ─────────────────────────────────────────────────── */
 .sidebar-overlay {
     display: none;
     position: fixed;
@@ -251,7 +241,6 @@ $rgb = $theme['color_rgb'];
 
 .sidebar-overlay.open { display: block; }
 
-/* ── Bouton hamburger ────────────────────────────────────────── */
 .hamburger {
     display: none;
     position: fixed;
@@ -267,27 +256,17 @@ $rgb = $theme['color_rgb'];
     font-size: 1.1rem;
 }
 
-/* ── Responsive ──────────────────────────────────────────────── */
 @media (max-width: 768px) {
-
     .hamburger { display: flex; }
-
-    .sidebar {
-        transform: translateX(-100%);
-    }
-
-    .sidebar.open {
-        transform: translateX(0);
-    }
+    .sidebar { transform: translateX(-100%); }
+    .sidebar.open { transform: translateX(0); }
 }
 </style>
 
-<!-- Bouton hamburger -->
 <button class="hamburger" id="hamburger">
     <i class="fas fa-bars"></i>
 </button>
 
-<!-- Overlay -->
 <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
 <div class="sidebar" id="sidebar">
@@ -322,18 +301,31 @@ $rgb = $theme['color_rgb'];
 
     <nav class="sidebar-nav">
 
+        <!-- Dashboard -->
         <a href="<?= base_url('dashboard') ?>"
            class="nav-item <?= ($path === 'dashboard') ? 'active' : '' ?>">
             <i class="fas fa-chart-line"></i>
             <span>Dashboard</span>
         </a>
 
+        <!-- Employés : RH voit tout, Chef voit sa direction -->
         <?php if ($idPfl == 1): ?>
         <a href="<?= base_url('employe') ?>"
            class="nav-item <?= (strpos($path, 'employe') === 0) ? 'active' : '' ?>">
             <i class="fas fa-users"></i>
             <span>Employés</span>
         </a>
+        <?php elseif ($idPfl == 2): ?>
+        <a href="<?= base_url('employe') ?>"
+           class="nav-item <?= (strpos($path, 'employe') === 0) ? 'active' : '' ?>">
+            <i class="fas fa-users"></i>
+            <span>Employés</span>
+            <span class="nav-chip">Ma direction</span>
+        </a>
+        <?php endif; ?>
+
+        <!-- Directions : RH uniquement -->
+        <?php if ($idPfl == 1): ?>
         <a href="<?= base_url('direction') ?>"
            class="nav-item <?= (strpos($path, 'direction') === 0) ? 'active' : '' ?>">
             <i class="fas fa-building"></i>
@@ -341,54 +333,42 @@ $rgb = $theme['color_rgb'];
         </a>
         <?php endif; ?>
 
+        <!-- Congés -->
         <a href="<?= base_url('conge') ?>"
            class="nav-item <?= (strpos($path, 'conge') === 0) ? 'active' : '' ?>">
             <i class="fas fa-calendar-alt"></i>
             <span>Congés</span>
         </a>
 
+        <!-- Absences -->
         <a href="<?= base_url('absence') ?>"
            class="nav-item <?= (strpos($path, 'absence') === 0) ? 'active' : '' ?>">
             <i class="fas fa-user-clock"></i>
             <span>Absences</span>
         </a>
 
-        <?php $isFormationActive = (strpos($path, 'formation') === 0 || strpos($path, 'demande-formation') === 0); ?>
-        <div class="nav-group">
-            <div class="nav-group-title <?= $isFormationActive ? 'active' : '' ?>"
-                 onclick="toggleGroup('formation')">
-                <div>
-                    <i class="fas fa-graduation-cap"></i>
-                    <span>Formations</span>
-                </div>
-                <i class="fas fa-chevron-down chevron <?= $isFormationActive ? 'open' : '' ?>"
-                   id="chevron-formation"></i>
-            </div>
-            <div class="nav-group-items <?= $isFormationActive ? 'open' : '' ?>"
-                 id="group-formation">
-                <a href="<?= base_url('formation') ?>"
-                   class="nav-subitem <?= (strpos($path, 'demande-formation') !== 0 && strpos($path, 'formation') === 0) ? 'active' : '' ?>">
-                    <i class="fas fa-chalkboard-teacher"></i> Catalogue
-                </a>
-                <a href="<?= base_url('demande-formation') ?>"
-                   class="nav-subitem <?= (strpos($path, 'demande-formation') === 0) ? 'active' : '' ?>">
-                    <i class="fas fa-file-alt"></i> Demandes
-                </a>
-            </div>
-        </div>
+        <!-- Formations -->
+        <a href="<?= base_url('formation') ?>"
+           class="nav-item <?= (strpos($path, 'formation') === 0) ? 'active' : '' ?>">
+            <i class="fas fa-graduation-cap"></i>
+            <span>Formations</span>
+        </a>
 
+        <!-- Compétences -->
         <a href="<?= base_url('competence') ?>"
            class="nav-item <?= (strpos($path, 'competence') === 0) ? 'active' : '' ?>">
             <i class="fas fa-star"></i>
             <span>Compétences</span>
         </a>
 
+        <!-- Événements -->
         <a href="<?= base_url('evenement') ?>"
            class="nav-item <?= (strpos($path, 'evenement') === 0) ? 'active' : '' ?>">
             <i class="fas fa-calendar-check"></i>
             <span>Événements</span>
         </a>
 
+        <!-- Paramètres : RH uniquement -->
         <?php if ($idPfl == 1): ?>
         <?php $isParamActive = (strpos($path, 'parametres') === 0); ?>
         <div class="nav-group">
@@ -433,12 +413,14 @@ $rgb = $theme['color_rgb'];
         </a>
         <?php endif; ?>
 
+        <!-- Notifications -->
         <a href="<?= base_url('notifications') ?>"
            class="nav-item <?= (strpos($path, 'notifications') === 0) ? 'active' : '' ?>">
             <i class="fas fa-bell"></i>
             <span>Notifications</span>
         </a>
 
+        <!-- Mon profil -->
         <a href="<?= base_url('profil') ?>"
            class="nav-item <?= (strpos($path, 'profil') === 0) ? 'active' : '' ?>">
             <i class="fas fa-user-circle"></i>
@@ -471,4 +453,11 @@ $rgb = $theme['color_rgb'];
         sidebar.classList.remove('open');
         overlay.classList.remove('open');
     });
+
+    function toggleGroup(name) {
+        const items   = document.getElementById('group-' + name);
+        const chevron = document.getElementById('chevron-' + name);
+        items.classList.toggle('open');
+        chevron.classList.toggle('open');
+    }
 </script>

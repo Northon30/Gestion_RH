@@ -19,12 +19,15 @@
         --c-soft:          rgba(255,255,255,0.55);
     }
 
+    .page-content { overflow-x: hidden; }
+
+    /* ===== FORM CARD — pleine largeur ===== */
     .form-card {
         background: var(--c-surface);
         border: 1px solid var(--c-border);
         border-radius: 14px;
         overflow: hidden;
-        max-width: 720px;
+        width: 100%;
     }
 
     .form-card-header {
@@ -49,6 +52,7 @@
     .form-card-body { padding: 22px; }
 
     .form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
 
     .form-group { display: flex; flex-direction: column; gap: 5px; }
 
@@ -65,59 +69,67 @@
         padding: 9px 12px; outline: none; width: 100%;
         transition: border-color 0.2s;
         font-family: 'Segoe UI', sans-serif;
+        height: 38px;
     }
 
     .form-control-dark:focus { border-color: var(--c-orange-border); }
     .form-control-dark::placeholder { color: var(--c-muted); }
     .form-control-dark option { background: #1a1a1a; }
-
     .form-control-dark.is-invalid { border-color: rgba(224,82,82,0.5); }
 
-    .invalid-msg {
-        font-size: 0.68rem; color: #ff8080; margin-top: 2px; display: none;
-    }
-
-    .invalid-msg.visible { display: block; }
-
-    .solde-info {
-        background: var(--c-orange-pale);
+    /* ===== SOLDE BANNER ===== */
+    .solde-banner {
+        background: var(--c-surface);
         border: 1px solid var(--c-orange-border);
-        border-radius: 10px; padding: 12px 16px;
-        display: flex; align-items: center; gap: 14px;
-        margin-bottom: 20px;
+        border-radius: 12px; padding: 14px 18px;
+        display: flex; align-items: center; gap: 16px;
+        margin-bottom: 18px; flex-wrap: wrap;
     }
 
-    .solde-info-icon {
-        width: 36px; height: 36px; border-radius: 9px;
+    .solde-icon {
+        width: 40px; height: 40px; border-radius: 10px;
         background: var(--c-orange-pale); border: 1px solid var(--c-orange-border);
         display: flex; align-items: center; justify-content: center;
-        color: var(--c-orange); font-size: 0.9rem; flex-shrink: 0;
+        color: var(--c-orange); font-size: 1rem; flex-shrink: 0;
     }
 
-    .solde-info-val { font-size: 1.4rem; font-weight: 900; color: var(--c-orange); line-height: 1; }
-    .solde-info-label { font-size: 0.7rem; color: var(--c-muted); margin-top: 2px; }
+    .solde-val   { font-size: 1.5rem; font-weight: 900; color: var(--c-orange); line-height: 1; }
+    .solde-lbl   { font-size: 0.68rem; color: var(--c-muted); margin-top: 2px; }
+    .solde-sep   { width: 1px; height: 32px; background: var(--c-orange-border); flex-shrink: 0; }
 
-    .solde-sep { width: 1px; height: 32px; background: var(--c-orange-border); flex-shrink: 0; }
-
+    /* ===== APERÇU DURÉE ===== */
     .duree-preview {
         background: var(--c-blue-pale); border: 1px solid var(--c-blue-border);
-        border-radius: 8px; padding: 8px 14px;
+        border-radius: 8px; padding: 9px 14px;
         font-size: 0.8rem; color: #5B9BF0; font-weight: 600;
         display: none; align-items: center; gap: 7px; margin-top: 8px;
     }
 
     .duree-preview.visible { display: flex; }
 
+    /* ===== SECTION DIVIDER ===== */
+    .section-divider {
+        font-size: 0.68rem; font-weight: 700; color: var(--c-orange);
+        text-transform: uppercase; letter-spacing: 0.8px;
+        padding-bottom: 8px; border-bottom: 1px solid var(--c-border);
+        margin-bottom: 16px; margin-top: 20px;
+        display: flex; align-items: center; gap: 8px;
+    }
+
+    .section-divider:first-child { margin-top: 0; }
+
+    /* ===== ALERTS ===== */
     .alert-errors {
         background: var(--c-red-pale); border: 1px solid var(--c-red-border);
         border-radius: 10px; padding: 12px 16px; margin-bottom: 18px;
     }
 
-    .alert-errors p { color: #ff8080; font-size: 0.8rem; margin: 0; }
+    .alert-errors p  { color: #ff8080; font-size: 0.8rem; margin: 0; }
     .alert-errors ul { color: #ff8080; font-size: 0.8rem; margin: 6px 0 0 16px; padding: 0; }
 
+    /* ===== ACTIONS ===== */
     .form-actions {
-        display: flex; align-items: center; gap: 10px;
+        display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
         padding: 16px 22px; border-top: 1px solid var(--c-border);
     }
 
@@ -140,15 +152,21 @@
 
     .btn-outline:hover { background: rgba(255,255,255,0.04); color: var(--c-text); }
 
-    .section-divider {
-        font-size: 0.68rem; font-weight: 700; color: var(--c-orange);
-        text-transform: uppercase; letter-spacing: 0.8px;
-        padding-bottom: 8px; border-bottom: 1px solid var(--c-border);
-        margin-bottom: 16px; margin-top: 20px;
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 768px) {
+        .form-grid-2 { grid-template-columns: 1fr; }
+        .form-grid-3 { grid-template-columns: 1fr 1fr; }
+        .form-card-body { padding: 16px; }
+        .form-actions  { padding: 14px 16px; }
+        .solde-banner  { gap: 10px; }
     }
 
-    @media (max-width: 576px) {
-        .form-grid-2 { grid-template-columns: 1fr; }
+    @media (max-width: 480px) {
+        .form-grid-3 { grid-template-columns: 1fr; }
+        .form-actions { flex-direction: column; }
+        .form-actions > * { width: 100%; justify-content: center; }
+        .page-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+        .solde-sep { display: none; }
     }
 </style>
 <?= $this->endSection() ?>
@@ -158,8 +176,12 @@
 <?php
 $idPfl = $idPfl ?? session()->get('id_Pfl');
 $idEmp = session()->get('id_Emp');
+$soldeRestant = $solde
+    ? (int)$solde['NbJoursDroit_Sld'] - (int)$solde['NbJoursPris_Sld']
+    : null;
 ?>
 
+<!-- PAGE HEADER -->
 <div class="page-header">
     <div>
         <h1><i class="fas fa-plus-circle me-2" style="color:#F5A623;"></i>Nouvelle demande de congé</h1>
@@ -172,28 +194,28 @@ $idEmp = session()->get('id_Emp');
 
 <!-- Solde disponible -->
 <?php if ($solde): ?>
-<div class="solde-info" style="max-width:720px;">
-    <div class="solde-info-icon"><i class="fas fa-wallet"></i></div>
+<div class="solde-banner">
+    <div class="solde-icon"><i class="fas fa-wallet"></i></div>
     <div>
-        <div class="solde-info-val"><?= (int)$solde['NbJoursDroit_Sld'] - (int)$solde['NbJoursPris_Sld'] ?></div>
-        <div class="solde-info-label">jours restants (<?= date('Y') ?>)</div>
+        <div class="solde-val"><?= $soldeRestant ?></div>
+        <div class="solde-lbl">jours restants (<?= date('Y') ?>)</div>
     </div>
     <div class="solde-sep"></div>
     <div>
-        <div style="font-size:0.9rem;font-weight:700;color:var(--c-soft);"><?= (int)$solde['NbJoursPris_Sld'] ?></div>
-        <div class="solde-info-label">jours pris</div>
+        <div style="font-size:1rem;font-weight:700;color:var(--c-soft);"><?= (int)$solde['NbJoursPris_Sld'] ?></div>
+        <div class="solde-lbl">jours pris</div>
     </div>
     <div class="solde-sep"></div>
     <div>
-        <div style="font-size:0.9rem;font-weight:700;color:var(--c-soft);"><?= (int)$solde['NbJoursDroit_Sld'] ?></div>
-        <div class="solde-info-label">droits totaux</div>
+        <div style="font-size:1rem;font-weight:700;color:var(--c-soft);"><?= (int)$solde['NbJoursDroit_Sld'] ?></div>
+        <div class="solde-lbl">droits totaux</div>
     </div>
 </div>
 <?php endif; ?>
 
 <!-- Erreurs -->
 <?php if (session()->getFlashdata('errors') || session()->getFlashdata('error')): ?>
-<div class="alert-errors" style="max-width:720px;">
+<div class="alert-errors">
     <?php if (session()->getFlashdata('error')): ?>
     <p><i class="fas fa-exclamation-triangle"></i> <?= esc(session()->getFlashdata('error')) ?></p>
     <?php endif; ?>
@@ -207,6 +229,7 @@ $idEmp = session()->get('id_Emp');
 </div>
 <?php endif; ?>
 
+<!-- FORMULAIRE -->
 <div class="form-card">
     <div class="form-card-header">
         <h5><i class="fas fa-umbrella-beach"></i> Demande de congé</h5>
@@ -219,7 +242,7 @@ $idEmp = session()->get('id_Emp');
 
             <!-- RH peut choisir l'employé -->
             <?php if ($idPfl == 1 && !empty($employes)): ?>
-            <div class="section-divider">Pour quel employé ?</div>
+            <div class="section-divider"><i class="fas fa-user"></i> Pour quel employé ?</div>
             <div class="form-group" style="margin-bottom:20px;">
                 <label class="form-label">Employé <span>*</span></label>
                 <select name="id_Emp" class="form-control-dark" id="sel-employe">
@@ -236,12 +259,12 @@ $idEmp = session()->get('id_Emp');
             </div>
             <?php endif; ?>
 
-            <div class="section-divider">Informations du congé</div>
+            <div class="section-divider"><i class="fas fa-info-circle"></i> Informations du congé</div>
 
             <div class="form-grid-2" style="margin-bottom:16px;">
                 <div class="form-group">
                     <label class="form-label">Type de congé <span>*</span></label>
-                    <select name="id_Tcg" class="form-control-dark <?= session()->getFlashdata('errors') && isset(session()->getFlashdata('errors')['id_Tcg']) ? 'is-invalid' : '' ?>">
+                    <select name="id_Tcg" class="form-control-dark">
                         <option value="">-- Choisir --</option>
                         <?php foreach ($typesConge as $tc): ?>
                         <option value="<?= (int)$tc['id_Tcg'] ?>"
@@ -255,7 +278,7 @@ $idEmp = session()->get('id_Emp');
                 <div class="form-group">
                     <label class="form-label">Libellé / Motif <span>*</span></label>
                     <input type="text" name="Libelle_Cge" class="form-control-dark"
-                           placeholder="Ex : Congé annuel été 2025"
+                           placeholder="Ex : Congé annuel été 2026"
                            value="<?= old('Libelle_Cge') ?>">
                 </div>
             </div>
@@ -282,11 +305,9 @@ $idEmp = session()->get('id_Emp');
             <div class="duree-preview" id="duree-preview">
                 <i class="fas fa-calendar-check"></i>
                 <span id="duree-text">— jours</span>
-                <?php if ($solde): ?>
                 <span id="duree-warning" style="color:#ff8080;display:none;">
                     &nbsp;— <i class="fas fa-exclamation-triangle"></i> Solde insuffisant
                 </span>
-                <?php endif; ?>
             </div>
 
         </div>
@@ -307,9 +328,9 @@ $idEmp = session()->get('id_Emp');
 <?= $this->section('js') ?>
 <script>
 (function() {
-    var soldeRestant = <?= $solde ? (int)$solde['NbJoursDroit_Sld'] - (int)$solde['NbJoursPris_Sld'] : 'null' ?>;
-    var debut = document.getElementById('date-debut');
-    var fin   = document.getElementById('date-fin');
+    var soldeRestant = <?= $soldeRestant !== null ? (int)$soldeRestant : 'null' ?>;
+    var debut   = document.getElementById('date-debut');
+    var fin     = document.getElementById('date-fin');
     var preview = document.getElementById('duree-preview');
     var texte   = document.getElementById('duree-text');
     var warning = document.getElementById('duree-warning');
@@ -320,8 +341,8 @@ $idEmp = session()->get('id_Emp');
             return;
         }
 
-        var d1 = new Date(debut.value);
-        var d2 = new Date(fin.value);
+        var d1   = new Date(debut.value);
+        var d2   = new Date(fin.value);
 
         if (d2 < d1) {
             fin.classList.add('is-invalid');
@@ -340,7 +361,6 @@ $idEmp = session()->get('id_Emp');
         }
     }
 
-    // Sync min date fin = date debut
     debut.addEventListener('change', function() {
         if (debut.value) fin.min = debut.value;
         calcDuree();
@@ -348,7 +368,7 @@ $idEmp = session()->get('id_Emp');
 
     fin.addEventListener('change', calcDuree);
 
-    // Trigger si valeurs pré-remplies (withInput)
+    // Pré-remplissage (withInput après erreur)
     if (debut.value && fin.value) calcDuree();
 })();
 </script>

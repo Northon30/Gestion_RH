@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Models\NotificationModel;
 use App\Models\ActivityLogModel;
+use App\Models\EmployeModel;
 
 class EvenementController extends BaseController
 {
@@ -30,11 +31,25 @@ class EvenementController extends BaseController
         return view("{$folder}/evenement/{$page}", $data);
     }
 
+    // Tous les RH
     private function getRHIds(): array
     {
         $db = \Config\Database::connect();
         return array_column(
             $db->table('employe')->where('id_Pfl', 1)->get()->getResultArray(),
+            'id_Emp'
+        );
+    }
+
+    // Uniquement le(s) chef(s) de la direction donnée
+    private function getChefsDirIds(int $idDir): array
+    {
+        $db = \Config\Database::connect();
+        return array_column(
+            $db->table('employe')
+               ->where('id_Pfl', 2)
+               ->where('id_Dir', $idDir)
+               ->get()->getResultArray(),
             'id_Emp'
         );
     }
@@ -46,7 +61,6 @@ class EvenementController extends BaseController
     {
         $db    = \Config\Database::connect();
         $idPfl = $this->idPfl();
-        $idDir = session()->get('id_Dir');
         $idEmp = $this->idEmp();
 
         $evenements = $db->table('evenement')
@@ -59,7 +73,6 @@ class EvenementController extends BaseController
             ->orderBy('evenement.Date_Evt', 'DESC')
             ->get()->getResultArray();
 
-        // Ma participation pour chaque événement
         foreach ($evenements as &$e) {
             $e['ma_participation'] = $db->table('participer')
                 ->where('id_Evt', $e['id_Evt'])
@@ -71,11 +84,11 @@ class EvenementController extends BaseController
         $typesEvenement = $db->table('type_evenement')->orderBy('Libelle_Tev')->get()->getResultArray();
         $directions     = $db->table('direction')->orderBy('Nom_Dir')->get()->getResultArray();
 
-        // Anniversaires du mois
-        $moisActuel    = date('m');
-        $annivQuery    = $db->table('employe')
+        // Anniversaires du mois — filtrés selon le profil
+        $moisActuel = date('m');
+        $annivQuery = $db->table('employe')
             ->select('employe.id_Emp, employe.Nom_Emp, employe.Prenom_Emp,
-                      employe.DateNaissance_Emp, employe.Email_Emp,
+                      employe.DateNaissance_Emp, employe.Email_Emp, employe.id_Dir,
                       direction.Nom_Dir, grade.Libelle_Grd,
                       MONTH(employe.DateNaissance_Emp) AS mois_naissance,
                       DAY(employe.DateNaissance_Emp)   AS jour_naissance,
@@ -85,8 +98,16 @@ class EvenementController extends BaseController
             ->where('MONTH(employe.DateNaissance_Emp)', $moisActuel)
             ->where('employe.DateNaissance_Emp IS NOT NULL');
 
+        // Chef → uniquement sa direction
         if ($idPfl == 2) {
-            $annivQuery->where('employe.id_Dir', $idDir);
+            $chef = (new EmployeModel())->find($idEmp);
+            $annivQuery->where('employe.id_Dir', $chef['id_Dir']);
+        }
+
+        // Employé → uniquement les anniversaires de sa direction
+        if ($idPfl == 3) {
+            $emp = (new EmployeModel())->find($idEmp);
+            $annivQuery->where('employe.id_Dir', $emp['id_Dir']);
         }
 
         $anniversaires = $annivQuery->orderBy('DAY(employe.DateNaissance_Emp)')->get()->getResultArray();
@@ -99,32 +120,32 @@ class EvenementController extends BaseController
 
         $this->envoyerNotifsAnniversaire($db, $anniversaires);
 
-        $totalEvenements    = count($evenements);
-        $evtAVenir          = count(array_filter($evenements, fn($e) => $e['Date_Evt'] >= date('Y-m-d')));
-        $evtPasses          = $totalEvenements - $evtAVenir;
-        $totalAnniv         = count($anniversaires);
-        $annivAujourdhui    = count(array_filter($anniversaires, fn($a) => $a['est_aujourd_hui']));
-        $totalParticipants  = $db->table('participer')->countAllResults();
+        $totalEvenements   = count($evenements);
+        $evtAVenir         = count(array_filter($evenements, fn($e) => $e['Date_Evt'] >= date('Y-m-d')));
+        $evtPasses         = $totalEvenements - $evtAVenir;
+        $totalAnniv        = count($anniversaires);
+        $annivAujourdhui   = count(array_filter($anniversaires, fn($a) => $a['est_aujourd_hui']));
+        $totalParticipants = $db->table('participer')->countAllResults();
 
         return $this->profileView('index', [
-            'title'            => 'Événements & Anniversaires',
-            'evenements'       => $evenements,
-            'typesEvenement'   => $typesEvenement,
-            'directions'       => $directions,
-            'anniversaires'    => $anniversaires,
-            'totalEvenements'  => $totalEvenements,
-            'totalParticipants'=> $totalParticipants,
-            'evtAVenir'        => $evtAVenir,
-            'evtPasses'        => $evtPasses,
-            'totalAnniv'       => $totalAnniv,
-            'annivAujourdhui'  => $annivAujourdhui,
-            'moisActuel'       => date('F', mktime(0,0,0,$moisActuel,1)),
-            'idPfl'            => $idPfl,
-            'idEmp'            => $idEmp,
+            'title'             => 'Événements & Anniversaires',
+            'evenements'        => $evenements,
+            'typesEvenement'    => $typesEvenement,
+            'directions'        => $directions,
+            'anniversaires'     => $anniversaires,
+            'totalEvenements'   => $totalEvenements,
+            'totalParticipants' => $totalParticipants,
+            'evtAVenir'         => $evtAVenir,
+            'evtPasses'         => $evtPasses,
+            'totalAnniv'        => $totalAnniv,
+            'annivAujourdhui'   => $annivAujourdhui,
+            'moisActuel'        => date('F', mktime(0, 0, 0, $moisActuel, 1)),
+            'idPfl'             => $idPfl,
+            'idEmp'             => $idEmp,
         ]);
     }
 
-    // ── Notifs anniversaire ──
+    // ── Notifs anniversaire ───────────────────────────────────
     private function envoyerNotifsAnniversaire($db, array $anniversaires): void
     {
         $aujourd_hui = date('Y-m-d');
@@ -140,6 +161,7 @@ class EvenementController extends BaseController
 
             if ($dejaEnvoyee > 0) continue;
 
+            // Notifier l'employé concerné
             $this->notif->envoyer(
                 $a['id_Emp'],
                 'Joyeux anniversaire ! 🎂',
@@ -147,6 +169,7 @@ class EvenementController extends BaseController
                 'anniversaire', base_url('profil'), null
             );
 
+            // Notifier tous les RH
             $rhs = $db->table('employe')->where('id_Pfl', 1)->get()->getResultArray();
             foreach ($rhs as $rh) {
                 if ($rh['id_Emp'] == $a['id_Emp']) continue;
@@ -154,6 +177,19 @@ class EvenementController extends BaseController
                     $rh['id_Emp'],
                     'Anniversaire aujourd\'hui',
                     $a['Prenom_Emp'] . ' ' . $a['Nom_Emp'] . ' fête son anniversaire aujourd\'hui.',
+                    'anniversaire', base_url('evenement'), null
+                );
+            }
+
+            // Notifier uniquement le chef de la direction de l'employé
+            $chefsDir = $this->getChefsDirIds((int)$a['id_Dir']);
+            foreach ($chefsDir as $idChef) {
+                if ($idChef == $a['id_Emp']) continue;
+                $this->notif->envoyer(
+                    $idChef,
+                    'Anniversaire aujourd\'hui',
+                    $a['Prenom_Emp'] . ' ' . $a['Nom_Emp']
+                    . ' de votre direction fête son anniversaire aujourd\'hui.',
                     'anniversaire', base_url('evenement'), null
                 );
             }
@@ -167,7 +203,6 @@ class EvenementController extends BaseController
     {
         $db    = \Config\Database::connect();
         $idPfl = $this->idPfl();
-        $idDir = session()->get('id_Dir');
         $idEmp = $this->idEmp();
 
         $evenement = $db->table('evenement')
@@ -193,29 +228,33 @@ class EvenementController extends BaseController
 
         // Chef → uniquement sa direction
         if ($idPfl == 2) {
-            $query->where('employe.id_Dir', $idDir);
+            $chef = (new EmployeModel())->find($idEmp);
+            $query->where('employe.id_Dir', $chef['id_Dir']);
         }
 
         $participants = $query->orderBy('employe.Nom_Emp')->get()->getResultArray();
 
-        // Ma participation
         $maParticipation = $db->table('participer')
             ->where('id_Evt', $id)
             ->where('id_Emp', $idEmp)
             ->get()->getRowArray();
 
-        // Employés non inscrits (RH/Chef uniquement)
+        // Employés non inscrits disponibles pour ajout (RH et Chef)
         $employesSans = [];
         $directions   = [];
+
         if ($idPfl != 3) {
             $dejaIds  = array_column($participants, 'id_Emp');
             $empQuery = $db->table('employe')
                 ->select('employe.id_Emp, employe.Nom_Emp, employe.Prenom_Emp, direction.Nom_Dir')
                 ->join('direction', 'direction.id_Dir = employe.id_Dir', 'left')
+                ->where('employe.id_Pfl', 3) // Uniquement les employés
                 ->orderBy('employe.Nom_Emp');
 
+            // Chef → uniquement sa direction
             if ($idPfl == 2) {
-                $empQuery->where('employe.id_Dir', $idDir);
+                $chef = (new EmployeModel())->find($idEmp);
+                $empQuery->where('employe.id_Dir', $chef['id_Dir']);
             }
 
             if (!empty($dejaIds)) {
@@ -227,14 +266,14 @@ class EvenementController extends BaseController
         }
 
         return $this->profileView('show', [
-            'title'          => 'Événement : ' . $evenement['Description_Evt'],
-            'evenement'      => $evenement,
-            'participants'   => $participants,
-            'maParticipation'=> $maParticipation,
-            'employesSans'   => $employesSans,
-            'directions'     => $directions,
-            'idPfl'          => $idPfl,
-            'idEmp'          => $idEmp,
+            'title'           => 'Événement : ' . $evenement['Description_Evt'],
+            'evenement'       => $evenement,
+            'participants'    => $participants,
+            'maParticipation' => $maParticipation,
+            'employesSans'    => $employesSans,
+            'directions'      => $directions,
+            'idPfl'           => $idPfl,
+            'idEmp'           => $idEmp,
         ]);
     }
 
@@ -385,11 +424,16 @@ class EvenementController extends BaseController
     }
 
     // ══════════════════════════════════════════════════════════
-    // GESTION PARTICIPANTS — RH uniquement
+    // GESTION PARTICIPANTS — RH et Chef
+    // RH : tous les employés
+    // Chef : uniquement les employés de SA direction
     // ══════════════════════════════════════════════════════════
     public function ajouterParticipant($idEvt)
     {
-        if ($this->idPfl() != 1) {
+        $idPfl = $this->idPfl();
+
+        // RH et Chef peuvent ajouter des participants
+        if (!in_array($idPfl, [1, 2])) {
             return redirect()->to('evenement')->with('error', 'Accès refusé.');
         }
 
@@ -404,6 +448,16 @@ class EvenementController extends BaseController
 
         if (!$idEmpCible) {
             return redirect()->to('evenement/show/' . $idEvt)->with('error', 'Employé invalide.');
+        }
+
+        // Chef → vérifier que l'employé est dans sa direction
+        if ($idPfl == 2) {
+            $chef    = (new EmployeModel())->find($this->idEmp());
+            $employe = (new EmployeModel())->find($idEmpCible);
+            if ($employe['id_Dir'] != $chef['id_Dir']) {
+                return redirect()->to('evenement/show/' . $idEvt)
+                                 ->with('error', 'Accès refusé. Cet employé n\'est pas dans votre direction.');
+            }
         }
 
         $existant = $db->table('participer')
@@ -422,6 +476,7 @@ class EvenementController extends BaseController
             'id_Evt'  => (int)$idEvt,
         ]);
 
+        // Notifier uniquement l'employé ajouté
         $this->notif->envoyer(
             $idEmpCible,
             'Participation à un événement',
@@ -444,7 +499,10 @@ class EvenementController extends BaseController
 
     public function ajouterParticipants($idEvt)
     {
-        if ($this->idPfl() != 1) {
+        $idPfl = $this->idPfl();
+
+        // RH et Chef peuvent ajouter des participants
+        if (!in_array($idPfl, [1, 2])) {
             return redirect()->to('evenement')->with('error', 'Accès refusé.');
         }
 
@@ -461,12 +519,24 @@ class EvenementController extends BaseController
             return redirect()->to('evenement/show/' . $idEvt)->with('error', 'Aucun employé sélectionné.');
         }
 
+        // Chef → récupérer sa direction pour vérification
+        $chef = ($idPfl == 2) ? (new EmployeModel())->find($this->idEmp()) : null;
+
         $ajoutes = 0;
         $ignores = 0;
 
         foreach ($ids as $idEmpCible) {
             $idEmpCible = (int)$idEmpCible;
             if (!$idEmpCible) continue;
+
+            // Chef → vérifier que l'employé est dans sa direction
+            if ($idPfl == 2) {
+                $employe = (new EmployeModel())->find($idEmpCible);
+                if ($employe['id_Dir'] != $chef['id_Dir']) {
+                    $ignores++;
+                    continue;
+                }
+            }
 
             $existe = $db->table('participer')
                 ->where('id_Emp', $idEmpCible)
@@ -481,6 +551,7 @@ class EvenementController extends BaseController
                 'id_Evt'  => (int)$idEvt,
             ]);
 
+            // Notifier uniquement l'employé ajouté
             $this->notif->envoyer(
                 $idEmpCible,
                 'Participation à un événement',
@@ -502,14 +573,17 @@ class EvenementController extends BaseController
         ]);
 
         $msg = $ajoutes . ' participant(s) ajouté(s).';
-        if ($ignores > 0) $msg .= ' ' . $ignores . ' ignoré(s) (déjà inscrits).';
+        if ($ignores > 0) $msg .= ' ' . $ignores . ' ignoré(s) (déjà inscrits ou hors direction).';
 
         return redirect()->to('evenement/show/' . $idEvt)->with('success', $msg);
     }
 
     public function retirerParticipant($idPtr)
     {
-        if ($this->idPfl() != 1) {
+        $idPfl = $this->idPfl();
+
+        // RH et Chef peuvent retirer des participants
+        if (!in_array($idPfl, [1, 2])) {
             return redirect()->to('evenement')->with('error', 'Accès refusé.');
         }
 
@@ -520,11 +594,22 @@ class EvenementController extends BaseController
             return redirect()->to('evenement')->with('error', 'Participation introuvable.');
         }
 
+        // Chef → vérifier que l'employé est dans sa direction
+        if ($idPfl == 2) {
+            $chef    = (new EmployeModel())->find($this->idEmp());
+            $employe = (new EmployeModel())->find($participation['id_Emp']);
+            if ($employe['id_Dir'] != $chef['id_Dir']) {
+                return redirect()->to('evenement/show/' . $participation['id_Evt'])
+                                 ->with('error', 'Accès refusé. Cet employé n\'est pas dans votre direction.');
+            }
+        }
+
         $idEvt = $participation['id_Evt'];
         $db->table('participer')->where('Id_Ptr', $idPtr)->delete();
 
         $evenement = $db->table('evenement')->where('id_Evt', $idEvt)->get()->getRowArray();
 
+        // Notifier uniquement l'employé retiré
         $this->notif->envoyer(
             $participation['id_Emp'],
             'Retrait de participation',
@@ -575,7 +660,8 @@ class EvenementController extends BaseController
         $this->log->insert([
             'Action_Log'      => 'NOTIFIER',
             'Module_Log'      => 'Evenement',
-            'Description_Log' => 'Notification rappel événement ID : ' . $idEvt . ' (' . count($participants) . ' participants)',
+            'Description_Log' => 'Notification rappel événement ID : ' . $idEvt
+                               . ' (' . count($participants) . ' participants)',
             'IpAdresse_Log'   => $this->request->getIPAddress(),
             'DateHeure_Log'   => date('Y-m-d H:i:s'),
             'id_Emp'          => $this->idEmp(),
@@ -586,7 +672,7 @@ class EvenementController extends BaseController
     }
 
     // ══════════════════════════════════════════════════════════
-    // PARTICIPER / SE RETIRER — Employé et Chef
+    // PARTICIPER / SE RETIRER — Employé et Chef (soi-même)
     // ══════════════════════════════════════════════════════════
     public function participer($idEvt)
     {
@@ -615,14 +701,29 @@ class EvenementController extends BaseController
             'id_Evt'  => (int)$idEvt,
         ]);
 
-        // Notifier les RH
+        // Récupérer les infos de l'employé depuis le modèle
+        $employe  = (new EmployeModel())->find($idEmp);
+        $nomEmp   = $employe['Nom_Emp'] . ' ' . $employe['Prenom_Emp'];
+        $lien     = base_url('evenement/show/' . $idEvt);
+        $chefsDir = $this->getChefsDirIds($employe['id_Dir']);
+
+        // Notifier le RH
         $this->notif->envoyerMultiple(
             $this->getRHIds(),
             'Nouvelle participation',
-            session()->get('prenom') . ' ' . session()->get('nom')
-            . ' participe à l\'événement : ' . $evenement['Description_Evt'] . '.',
-            'evenement', base_url('evenement/show/' . $idEvt), $idEmp
+            $nomEmp . ' participe à l\'événement : ' . $evenement['Description_Evt'] . '.',
+            'evenement', $lien, $idEmp
         );
+
+        // Notifier le chef de sa direction
+        if (!empty($chefsDir)) {
+            $this->notif->envoyerMultiple(
+                $chefsDir,
+                'Nouvelle participation',
+                $nomEmp . ' participe à l\'événement : ' . $evenement['Description_Evt'] . '.',
+                'evenement', $lien, $idEmp
+            );
+        }
 
         $this->log->insert([
             'Action_Log'      => 'PARTICIPER',
@@ -654,14 +755,28 @@ class EvenementController extends BaseController
         $db->table('participer')->where('Id_Ptr', $participation['Id_Ptr'])->delete();
 
         $evenement = $db->table('evenement')->where('id_Evt', $idEvt)->get()->getRowArray();
+        $employe   = (new EmployeModel())->find($idEmp);
+        $nomEmp    = $employe['Nom_Emp'] . ' ' . $employe['Prenom_Emp'];
+        $lien      = base_url('evenement/show/' . $idEvt);
+        $chefsDir  = $this->getChefsDirIds($employe['id_Dir']);
 
+        // Notifier le RH
         $this->notif->envoyerMultiple(
             $this->getRHIds(),
             'Retrait de participation',
-            session()->get('prenom') . ' ' . session()->get('nom')
-            . ' s\'est retiré de l\'événement : ' . ($evenement['Description_Evt'] ?? '') . '.',
-            'evenement', base_url('evenement/show/' . $idEvt), $idEmp
+            $nomEmp . ' s\'est retiré de l\'événement : ' . ($evenement['Description_Evt'] ?? '') . '.',
+            'evenement', $lien, $idEmp
         );
+
+        // Notifier le chef de sa direction
+        if (!empty($chefsDir)) {
+            $this->notif->envoyerMultiple(
+                $chefsDir,
+                'Retrait de participation',
+                $nomEmp . ' s\'est retiré de l\'événement : ' . ($evenement['Description_Evt'] ?? '') . '.',
+                'evenement', $lien, $idEmp
+            );
+        }
 
         $this->log->insert([
             'Action_Log'      => 'SE_RETIRER',

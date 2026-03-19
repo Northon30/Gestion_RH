@@ -12,6 +12,7 @@ class EmployeModel extends Model
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
     protected $allowedFields    = [
+        'Matricule_Emp',
         'Nom_Emp',
         'Prenom_Emp',
         'Sexe_Emp',

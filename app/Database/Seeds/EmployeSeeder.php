@@ -8,8 +8,9 @@ class EmployeSeeder extends Seeder
 {
     public function run()
     {
-        $data = [
+        $employes = [
             [
+                'Matricule_Emp'     => 'ANS-2020-001',
                 'Nom_Emp'           => 'KOUASSI',
                 'Prenom_Emp'        => 'Jean',
                 'Sexe_Emp'          => 1,
@@ -22,9 +23,10 @@ class EmployeSeeder extends Seeder
                 'Password_Emp'      => password_hash('password123', PASSWORD_DEFAULT),
                 'id_Dir'            => 1,
                 'id_Grd'            => 4,
-                'id_Pfl'            => 1,
+                'id_Pfl'            => 1, // RH
             ],
             [
+                'Matricule_Emp'     => 'ANS-2018-001',
                 'Nom_Emp'           => 'KONE',
                 'Prenom_Emp'        => 'Aminata',
                 'Sexe_Emp'          => 0,
@@ -37,9 +39,10 @@ class EmployeSeeder extends Seeder
                 'Password_Emp'      => password_hash('password123', PASSWORD_DEFAULT),
                 'id_Dir'            => 2,
                 'id_Grd'            => 5,
-                'id_Pfl'            => 2,
+                'id_Pfl'            => 2, // Chef
             ],
             [
+                'Matricule_Emp'     => 'ANS-2022-001',
                 'Nom_Emp'           => 'DIALLO',
                 'Prenom_Emp'        => 'Moussa',
                 'Sexe_Emp'          => 1,
@@ -52,9 +55,10 @@ class EmployeSeeder extends Seeder
                 'Password_Emp'      => password_hash('password123', PASSWORD_DEFAULT),
                 'id_Dir'            => 3,
                 'id_Grd'            => 3,
-                'id_Pfl'            => 3,
+                'id_Pfl'            => 3, // Employé
             ],
             [
+                'Matricule_Emp'     => 'ANS-2021-001',
                 'Nom_Emp'           => 'TRAORE',
                 'Prenom_Emp'        => 'Fatou',
                 'Sexe_Emp'          => 0,
@@ -67,9 +71,10 @@ class EmployeSeeder extends Seeder
                 'Password_Emp'      => password_hash('password123', PASSWORD_DEFAULT),
                 'id_Dir'            => 5,
                 'id_Grd'            => 4,
-                'id_Pfl'            => 3,
+                'id_Pfl'            => 3, // Employé
             ],
             [
+                'Matricule_Emp'     => 'ANS-2023-001',
                 'Nom_Emp'           => 'YAO',
                 'Prenom_Emp'        => 'Norton',
                 'Sexe_Emp'          => 1,
@@ -82,10 +87,26 @@ class EmployeSeeder extends Seeder
                 'Password_Emp'      => password_hash('password123', PASSWORD_DEFAULT),
                 'id_Dir'            => 5,
                 'id_Grd'            => 2,
-                'id_Pfl'            => 3,
+                'id_Pfl'            => 3, // Employé
             ],
         ];
 
-        $this->db->table('employe')->insertBatch($data);
+        $this->db->table('employe')->insertBatch($employes);
+
+        // Créer un solde de congés pour l'année en cours pour chaque employé
+        $annee    = date('Y');
+        $employes = $this->db->table('employe')->select('id_Emp')->get()->getResultArray();
+
+        $soldes = [];
+        foreach ($employes as $emp) {
+            $soldes[] = [
+                'Annee_Sld'        => $annee,
+                'NbJoursDroit_Sld' => 30,
+                'NbJoursPris_Sld'  => 0,
+                'id_Emp'           => $emp['id_Emp'],
+            ];
+        }
+
+        $this->db->table('solde_conge')->insertBatch($soldes);
     }
 }

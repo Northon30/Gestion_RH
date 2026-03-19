@@ -1,0 +1,294 @@
+
+|   +---Config
+|   |   |   Routes.php
+|   +---Controllers
+|   |       AbsenceController.php
+|   |       ActivityLogController.php
+|   |       AttribuerController.php
+|   |       AuthController.php
+|   |       BaseController.php
+|   |       CompetenceController.php
+|   |       CongeController.php
+|   |       DashboardController.php
+|   |       DemandeFormationController.php
+|   |       DirectionController.php
+|   |       EmployeController.php
+|   |       EvenementController.php
+|   |       FormationController.php
+|   |       GradeController.php
+|   |       Home.php
+|   |       NotificationController.php
+|   |       ObtenirController.php
+|   |       ParticiperController.php
+|   |       PasswordResetController.php
+|   |       PermissionController.php
+|   |       PieceJustificativeController.php
+|   |       ProfilController.php
+|   |       ProfilUtilisateurController.php
+|   |       SessionController.php
+|   |       SInscrireController.php
+|   |       SoldeCongeController.php
+|   |       TypeAbsenceController.php
+|   |       TypeCongeController.php
+|   |       TypeEvenementController.php
+|   |       
+|   +---Database
+|   |   +---Migrations
+|   |   |       .gitkeep
+|   |   |       2026-03-06-232345_CreateDirectionTable.php
+|   |   |       2026-03-06-232346_CreateGradeTable.php
+|   |   |       2026-03-06-232347_CreateProfilTable.php
+|   |   |       2026-03-06-232347_CreateTypeCongeTable.php
+|   |   |       2026-03-06-232348_CreateTypeAbsenceTable.php
+|   |   |       2026-03-06-232349_CreateCompetenceTable.php
+|   |   |       2026-03-06-232349_CreateTypeEvenementTable.php
+|   |   |       2026-03-06-232350_CreateFormationTable.php
+|   |   |       2026-03-06-232351_CreateEmployeTable.php
+|   |   |       2026-03-06-232352_CreateAbsenceTable.php
+|   |   |       2026-03-06-232352_CreatePieceJustificativeTable.php
+|   |   |       2026-03-06-232353_CreateCongeTable.php
+|   |   |       2026-03-06-232354_CreateEvenementTable.php
+|   |   |       2026-03-06-232354_CreateSoldeCongeTable.php
+|   |   |       2026-03-06-232356_CreateParticiperTable.php
+|   |   |       2026-03-06-232356_CreateSInscrireTable.php
+|   |   |       2026-03-06-232357_CreateAttribuerTable.php
+|   |   |       2026-03-06-233252_CreateSessionsTable.php
+|   |   |       2026-03-06-233253_CreatePasswordResetsTable.php
+|   |   |       2026-03-06-233254_CreateActivityLogsTable.php
+|   |   |       2026-03-06-233254_CreatePermissionTable.php
+|   |   |       2026-03-06-233255_CreateNotificationTable.php
+|   |   |       
+|   |   \---Seeds
+|   |           .gitkeep
+|   |           AbsenceSeeder.php
+|   |           CompetenceSeeder.php
+|   |           CongeSeeder.php
+|   |           DatabaseSeeder.php
+|   |           DirectionSeeder.php
+|   |           EmployeSeeder.php
+|   |           EvenementSeeder.php
+|   |           FormationSeeder.php
+|   |           GradeSeeder.php
+|   |           Obtenirseeder.php
+|   |           PermissionSeeder.php
+|   |           ProfilSeeder.php
+|   |           TypeAbsenceSeeder.php
+|   |           TypeCongeSeeder.php
+|   |           TypeEvenementSeeder.php
+|   |           
+|   +---Models
+|   |       .gitkeep
+|   |       AbsenceModel.php
+|   |       ActivityLogModel.php
+|   |       AttribuerModel.php
+|   |       CompetenceModel.php
+|   |       CongeModel.php
+|   |       DemandeFormationModel.php
+|   |       DirectionModel.php
+|   |       EmployeModel.php
+|   |       EvenementModel.php
+|   |       FormationModel.php
+|   |       GradeModel.php
+|   |       NotificationModel.php
+|   |       ObtenirModel.php
+|   |       ParticiperModel.php
+|   |       PasswordResetModel.php
+|   |       PermissionModel.php
+|   |       PieceJustificativeModel.php
+|   |       ProfilModel.php
+|   |       SessionModel.php
+|   |       SInscrireModel.php
+|   |       SoldeCongeModel.php
+|   |       TypeAbsenceModel.php
+|   |       TypeCongeModel.php
+|   |       TypeEvenementModel.php
+|   |       
+|   \---Views
+|       +---Auth
+|       |       login.php
+|       |       
+|       +---chef
+|       |   |   dashboard.php
+|       |   |   
+|       |   +---absence
+|       |   |       create.php
+|       |   |       edit.php
+|       |   |       index.php
+|       |   |       show.php
+|       |   |       
+|       |   +---conge
+|       |   |       create.php
+|       |   |       edit.php
+|       |   |       index.php
+|       |   |       show.php
+|       |   |       
+|       |   +---evenement
+|       |   |       index.php
+|       |   |       show.php
+|       |   |       
+|       |   +---formation
+|       |   |       demande_create.php
+|       |   |       demande_edit.php
+|       |   |       demande_index.php
+|       |   |       demande_show.php
+|       |   |       index.php
+|       |   |       show.php
+|       |   |       
+|       |   +---notifications
+|       |   |       index.php
+|       |   |       
+|       |   \---profil
+|       |           index.php
+|       |           password.php
+|       |           
+|       +---employe
+|       |   |   dashboard.php
+|       |   |   
+|       |   +---absence
+|       |   |       create.php
+|       |   |       edit.php
+|       |   |       index.php
+|       |   |       show.php
+|       |   |       
+|       |   +---competence
+|       |   |       index.php
+|       |   |       
+|       |   +---conge
+|       |   |       create.php
+|       |   |       edit.php
+|       |   |       index.php
+|       |   |       show.php
+|       |   |       
+|       |   +---evenement
+|       |   |       index.php
+|       |   |       show.php
+|       |   |       
+|       |   +---formation
+|       |   |       demande_create.php
+|       |   |       demande_edit.php
+|       |   |       demande_index.php
+|       |   |       demande_show.php
+|       |   |       index.php
+|       |   |       show.php
+|       |   |       
+|       |   +---notifications
+|       |   |       index.php
+|       |   |       
+|       |   \---profil
+|       |           index.php
+|       |           password.php
+|       |           
+|       +---errors
+|       |   +---cli
+|       |   |       error_404.php
+|       |   |       error_exception.php
+|       |   |       production.php
+|       |   |       
+|       |   \---html
+|       |           debug.css
+|       |           debug.js
+|       |           error_400.php
+|       |           error_404.php
+|       |           error_exception.php
+|       |           production.php
+|       |           
+|       +---layouts
+|       |       app.php
+|       |       navbar.php
+|       |       sidebar.php
+|       |       
+|       \---RH
+|           |   dashboard.php
+|           |   
+|           +---absence
+|           |       create.php
+|           |       edit.php
+|           |       index.php
+|           |       show.php
+|           |       
+|           +---activity_log
+|           |       index.php
+|           |       
+|           +---competence
+|           |       create.php
+|           |       edit.php
+|           |       index.php
+|           |       show.php
+|           |       
+|           +---conge
+|           |       create.php
+|           |       edit.php
+|           |       index.php
+|           |       show.php
+|           |       
+|           +---direction
+|           |       create.php
+|           |       edit.php
+|           |       index.php
+|           |       show.php
+|           |       
+|           +---employe
+|           |       create.php
+|           |       edit.php
+|           |       index.php
+|           |       show.php
+|           |       
+|           +---evenement
+|           |       create.php
+|           |       edit.php
+|           |       index.php
+|           |       show.php
+|           |       
+|           +---formation
+|           |       create.php
+|           |       demande_create.php
+|           |       demande_edit.php
+|           |       demande_index.php
+|           |       demande_show.php
+|           |       edit.php
+|           |       index.php
+|           |       show.php
+|           |       
+|           +---notifications
+|           |       index.php
+|           |       
+|           +---parametres
+|           |   +---grade
+|           |   |       create.php
+|           |   |       edit.php
+|           |   |       index.php
+|           |   |       show.php
+|           |   |       
+|           |   +---permission
+|           |   |       create.php
+|           |   |       edit.php
+|           |   |       index.php
+|           |   |       show.php
+|           |   |       
+|           |   +---profil
+|           |   |       create.php
+|           |   |       edit.php
+|           |   |       index.php
+|           |   |       show.php
+|           |   |       
+|           |   +---type-absence
+|           |   |       create.php
+|           |   |       edit.php
+|           |   |       index.php
+|           |   |       show.php
+|           |   |       
+|           |   +---type-conge
+|           |   |       create.php
+|           |   |       edit.php
+|           |   |       index.php
+|           |   |       show.php
+|           |   |       
+|           |   \---type-evenement
+|           |           create.php
+|           |           edit.php
+|           |           index.php
+|           |           show.php
+|           |           
+|           \---profil
+|                   index.php
+|                   password.php

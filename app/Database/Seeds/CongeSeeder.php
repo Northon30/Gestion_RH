@@ -22,7 +22,7 @@ class CongeSeeder extends Seeder
                 'Libelle_Cge'     => 'Congé maladie',
                 'DateDebut_Cge'   => '2026-03-10',
                 'DateFin_Cge'     => '2026-03-15',
-                'Statut_Cge'      => 'approuve',
+                'Statut_Cge'      => 'valide_rh',
                 'DateDemande_Cge' => '2026-03-08',
                 'id_Emp'          => 3,
                 'id_Tcg'          => 2,

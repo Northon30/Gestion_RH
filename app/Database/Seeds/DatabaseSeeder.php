@@ -15,8 +15,9 @@ class DatabaseSeeder extends Seeder
         $this->call('TypeAbsenceSeeder');
         $this->call('TypeEvenementSeeder');
         $this->call('CompetenceSeeder');
+        $this->call('EmployeSeeder');    
         $this->call('FormationSeeder');
-        $this->call('EmployeSeeder');
+        $this->call('ObtenirSeeder');   
         $this->call('AbsenceSeeder');
         $this->call('CongeSeeder');
         $this->call('EvenementSeeder');

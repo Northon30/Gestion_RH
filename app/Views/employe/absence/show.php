@@ -13,8 +13,12 @@
         --e-red:            #ff6b7a;
         --e-red-pale:       rgba(255,107,122,0.10);
         --e-red-border:     rgba(255,107,122,0.25);
+        --e-blue:           #6ea8fe;
         --e-blue-pale:      rgba(110,168,254,0.10);
         --e-blue-border:    rgba(110,168,254,0.25);
+        --e-purple:         #c084fc;
+        --e-purple-pale:    rgba(192,132,252,0.10);
+        --e-purple-border:  rgba(192,132,252,0.25);
         --e-surface:        #1a1a1a;
         --e-border:         rgba(255,255,255,0.06);
         --e-text:           rgba(255,255,255,0.85);
@@ -47,17 +51,19 @@
     }
     .info-value { color:var(--e-text); font-size:0.83rem; }
 
+    /* ── Badges statut ── */
     .badge {
         display:inline-flex; align-items:center; gap:5px;
         padding:4px 12px; border-radius:20px; font-size:0.75rem; font-weight:700; border:1px solid;
     }
-    .badge-en_attente { background:var(--e-orange-pale); border-color:var(--e-orange-border); color:var(--e-orange); }
-    .badge-valide_rh  { background:var(--e-blue-pale);   border-color:var(--e-blue-border);   color:#6ea8fe; }
-    .badge-rejete_rh  { background:var(--e-red-pale);    border-color:var(--e-red-border);     color:var(--e-red); }
-    .badge-approuve   { background:var(--e-primary-pale); border-color:var(--e-primary-border); color:var(--e-accent); }
-    .badge-rejete     { background:var(--e-red-pale);    border-color:var(--e-red-border);     color:var(--e-red); }
+    .badge-en_attente    { background:var(--e-orange-pale);  border-color:var(--e-orange-border);  color:var(--e-orange); }
+    .badge-approuve_chef { background:var(--e-purple-pale);  border-color:var(--e-purple-border);  color:var(--e-purple); }
+    .badge-valide_rh     { background:var(--e-blue-pale);    border-color:var(--e-blue-border);    color:var(--e-blue); }
+    .badge-rejete_chef   { background:var(--e-red-pale);     border-color:var(--e-red-border);     color:var(--e-red); }
+    .badge-rejete_rh     { background:var(--e-red-pale);     border-color:var(--e-red-border);     color:var(--e-red); }
+    .badge-expire        { background:rgba(255,255,255,0.05); border-color:rgba(255,255,255,0.12); color:var(--e-muted); }
 
-    /* Stepper workflow */
+    /* ── Stepper ── */
     .stepper { padding:18px; display:flex; flex-direction:column; gap:0; }
     .step { display:flex; gap:14px; position:relative; }
     .step:not(:last-child)::before {
@@ -65,8 +71,9 @@
         width:2px; height:calc(100% - 6px);
         background:var(--e-border);
     }
-    .step.done::before  { background:var(--e-primary); }
+    .step.done::before   { background:var(--e-primary); }
     .step.active::before { background:var(--e-orange); }
+    .step.reject::before { background:var(--e-red); }
 
     .step-dot {
         width:30px; height:30px; border-radius:50%; flex-shrink:0;
@@ -76,8 +83,9 @@
     }
     .step-dot.done   { background:var(--e-primary-pale); border-color:var(--e-primary); color:var(--e-accent); }
     .step-dot.active { background:var(--e-orange-pale);  border-color:var(--e-orange);  color:var(--e-orange); }
-    .step-dot.wait   { background:rgba(255,255,255,0.03); border-color:var(--e-border);  color:var(--e-muted); }
-    .step-dot.reject { background:var(--e-red-pale);     border-color:var(--e-red);     color:var(--e-red); }
+    .step-dot.wait   { background:rgba(255,255,255,0.03); border-color:var(--e-border); color:var(--e-muted); }
+    .step-dot.reject { background:var(--e-red-pale);     border-color:var(--e-red);    color:var(--e-red); }
+    .step-dot.skip   { background:rgba(255,255,255,0.03); border-color:var(--e-border); color:var(--e-muted); }
 
     .step-body { padding-bottom:18px; flex:1; }
     .step-title { color:#fff; font-size:0.82rem; font-weight:700; }
@@ -88,7 +96,7 @@
         font-style:italic;
     }
 
-    /* PJ */
+    /* ── PJ ── */
     .pj-item {
         padding:12px 18px; border-bottom:1px solid var(--e-border);
         display:flex; align-items:center; gap:12px;
@@ -103,14 +111,12 @@
     .pj-name  { color:var(--e-text); font-size:0.82rem; font-weight:600; }
     .pj-meta  { color:var(--e-muted); font-size:0.72rem; margin-top:2px; }
 
-    .badge-pj-validee   { background:var(--e-primary-pale); border-color:var(--e-primary-border); color:var(--e-accent); }
-    .badge-pj-en_attente{ background:var(--e-orange-pale);  border-color:var(--e-orange-border);  color:var(--e-orange); }
-    .badge-pj-rejetee   { background:var(--e-red-pale);     border-color:var(--e-red-border);     color:var(--e-red); }
+    .badge-pj-validee    { background:var(--e-primary-pale); border-color:var(--e-primary-border); color:var(--e-accent); }
+    .badge-pj-en_attente { background:var(--e-orange-pale);  border-color:var(--e-orange-border);  color:var(--e-orange); }
+    .badge-pj-rejetee    { background:var(--e-red-pale);     border-color:var(--e-red-border);     color:var(--e-red); }
 
-    /* Upload PJ */
-    .upload-zone {
-        padding:18px; border-top:1px solid var(--e-border);
-    }
+    /* ── Upload PJ ── */
+    .upload-zone { padding:18px; border-top:1px solid var(--e-border); }
     .upload-label {
         font-size:0.72rem; font-weight:600; color:var(--e-soft);
         text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px; display:block;
@@ -122,6 +128,7 @@
     }
     .upload-input:focus { outline:none; border-color:var(--e-primary-border); }
 
+    /* ── Boutons ── */
     .btn-green {
         background:linear-gradient(135deg,var(--e-primary),#4A8A4A);
         border:none; color:#fff; font-weight:700; border-radius:8px;
@@ -154,6 +161,7 @@
     }
     .btn-danger:hover { transform:translateY(-1px); box-shadow:0 5px 16px rgba(192,57,43,0.35); }
 
+    /* ── Alertes ── */
     .alert-success {
         background:var(--e-primary-pale); border:1px solid var(--e-primary-border);
         border-radius:10px; padding:11px 16px; color:var(--e-accent);
@@ -167,6 +175,7 @@
 
     .right-col { display:flex; flex-direction:column; gap:16px; }
 
+    /* ── Modal ── */
     .modal-overlay {
         position:fixed; inset:0; background:rgba(0,0,0,0.7);
         display:none; align-items:center; justify-content:center; z-index:1000;
@@ -181,6 +190,13 @@
     .modal-msg   { color:var(--e-muted); font-size:0.82rem; margin-bottom:20px; }
     .modal-actions { display:flex; gap:10px; justify-content:center; }
 
+    /* ── Bannière expirée ── */
+    .banner-expire {
+        background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.10);
+        border-radius:10px; padding:11px 16px; color:var(--e-muted);
+        font-size:0.82rem; display:flex; align-items:center; gap:10px; margin-bottom:14px;
+    }
+
     @media (max-width:900px) { .detail-grid { grid-template-columns:1fr; } }
 </style>
 <?= $this->endSection() ?>
@@ -188,12 +204,14 @@
 <?= $this->section('content') ?>
 
 <?php
+// ── Libellés statuts alignés sur le controller ──
 $statutLabels = [
-    'en_attente' => 'En attente',
-    'valide_rh'  => 'Validé RH',
-    'rejete_rh'  => 'Rejeté RH',
-    'approuve'   => 'Approuvé',
-    'rejete'     => 'Rejeté',
+    'en_attente'    => 'En attente',
+    'approuve_chef' => 'Approuvé Chef',
+    'rejete_chef'   => 'Refusé Chef',
+    'valide_rh'     => 'Validé RH',
+    'rejete_rh'     => 'Rejeté RH',
+    'expire'        => 'Expiré',
 ];
 $pjLabels = ['en_attente' => 'En attente', 'validee' => 'Validée', 'rejetee' => 'Rejetée'];
 $statut   = $absence['Statut_Abs'];
@@ -205,7 +223,7 @@ $statut   = $absence['Statut_Abs'];
         <p><?= esc($absence['Libelle_TAbs']) ?> — du <?= date('d/m/Y', strtotime($absence['DateDebut_Abs'])) ?></p>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <?php if ($statut === 'en_attente'): ?>
+        <?php if ($peutModifier): ?>
         <a href="<?= base_url('absence/edit/' . $absence['id_Abs']) ?>" class="btn-orange">
             <i class="fas fa-pen"></i> Modifier
         </a>
@@ -225,10 +243,16 @@ $statut   = $absence['Statut_Abs'];
 <?php if (session()->getFlashdata('error')): ?>
 <div class="alert-error"><i class="fas fa-exclamation-circle"></i> <?= esc(session()->getFlashdata('error')) ?></div>
 <?php endif; ?>
+<?php if ($statut === 'expire'): ?>
+<div class="banner-expire">
+    <i class="fas fa-clock"></i>
+    Cette demande a expiré automatiquement car la date de début est dépassée.
+</div>
+<?php endif; ?>
 
 <div class="detail-grid">
 
-    <!-- COL GAUCHE -->
+    <!-- ── COL GAUCHE ── -->
     <div style="display:flex;flex-direction:column;gap:16px;">
 
         <!-- Infos principales -->
@@ -236,8 +260,8 @@ $statut   = $absence['Statut_Abs'];
             <div class="card-header">
                 <div class="card-icon"><i class="fas fa-info-circle"></i></div>
                 <p class="card-title">Informations</p>
-                <span class="badge badge-<?= $statut ?>" style="margin-left:auto;">
-                    <?= $statutLabels[$statut] ?? $statut ?>
+                <span class="badge badge-<?= esc($statut) ?>" style="margin-left:auto;">
+                    <?= $statutLabels[$statut] ?? esc($statut) ?>
                 </span>
             </div>
             <div class="info-block">
@@ -282,7 +306,7 @@ $statut   = $absence['Statut_Abs'];
                 <div class="card-icon"><i class="fas fa-paperclip"></i></div>
                 <p class="card-title">Pièces justificatives</p>
                 <?php if ($estJustifiee): ?>
-                <span class="badge badge-approuve" style="margin-left:auto;">
+                <span class="badge badge-valide_rh" style="margin-left:auto;">
                     <i class="fas fa-check"></i> Justifiée
                 </span>
                 <?php endif; ?>
@@ -293,9 +317,7 @@ $statut   = $absence['Statut_Abs'];
                 <div class="pj-item">
                     <div class="pj-icon"><i class="fas fa-file-alt"></i></div>
                     <div style="flex:1;">
-                        <div class="pj-name">
-                            <?= esc(basename($pj['CheminFichier_PJ'])) ?>
-                        </div>
+                        <div class="pj-name"><?= esc(basename($pj['CheminFichier_PJ'])) ?></div>
                         <div class="pj-meta">
                             Déposé le <?= date('d/m/Y', strtotime($pj['DateDepot_PJ'])) ?>
                             <?php if ($pj['NomValidPJ']): ?>
@@ -309,8 +331,8 @@ $statut   = $absence['Statut_Abs'];
                         <?php endif; ?>
                     </div>
                     <div style="display:flex;align-items:center;gap:8px;">
-                        <span class="badge badge-pj-<?= $pj['Statut_PJ'] ?>">
-                            <?= $pjLabels[$pj['Statut_PJ']] ?? $pj['Statut_PJ'] ?>
+                        <span class="badge badge-pj-<?= esc($pj['Statut_PJ']) ?>">
+                            <?= $pjLabels[$pj['Statut_PJ']] ?? esc($pj['Statut_PJ']) ?>
                         </span>
                         <a href="<?= base_url($pj['CheminFichier_PJ']) ?>" target="_blank"
                            class="btn-ghost" style="padding:4px 10px;font-size:0.72rem;">
@@ -326,7 +348,8 @@ $statut   = $absence['Statut_Abs'];
             </div>
             <?php endif; ?>
 
-            <!-- Upload PJ -->
+            <!-- Upload PJ — masqué si expiré ou rejeté définitivement -->
+            <?php if (!in_array($statut, ['expire', 'rejete_chef', 'rejete_rh'])): ?>
             <div class="upload-zone">
                 <label class="upload-label">
                     <i class="fas fa-upload me-1"></i> Ajouter une pièce justificative
@@ -341,25 +364,43 @@ $statut   = $absence['Statut_Abs'];
                             <i class="fas fa-upload"></i> Envoyer
                         </button>
                     </div>
-                    <span class="form-hint" style="font-size:0.7rem;color:var(--e-muted);margin-top:6px;display:block;">
+                    <span style="font-size:0.7rem;color:var(--e-muted);margin-top:6px;display:block;">
                         PDF, JPG ou PNG — max 5 Mo
                     </span>
                 </form>
             </div>
+            <?php endif; ?>
         </div>
 
     </div>
 
-    <!-- COL DROITE -->
+    <!-- ── COL DROITE ── -->
     <div class="right-col">
 
-        <!-- Stepper workflow -->
+        <!-- Stepper workflow — ordre réel : Déclaration → Chef → RH -->
         <div class="card">
             <div class="card-header">
                 <div class="card-icon"><i class="fas fa-route"></i></div>
                 <p class="card-title">Suivi de la demande</p>
             </div>
             <div class="stepper">
+
+                <?php
+                // ── Calcul des états de chaque étape ──
+                // Étape 1 : Déclaration (toujours done)
+
+                // Étape 2 : Chef de Direction
+                $chefDone   = in_array($statut, ['approuve_chef', 'valide_rh', 'rejete_chef', 'rejete_rh', 'expire']);
+                $chefRejet  = $statut === 'rejete_chef';
+                $chefActive = $statut === 'en_attente';
+                // Auto-approuvé (chef pour lui-même) : step visible mais grayed
+                $chefSkip   = false;
+
+                // Étape 3 : RH
+                $rhDone     = in_array($statut, ['valide_rh', 'rejete_rh']);
+                $rhRejet    = $statut === 'rejete_rh';
+                $rhActive   = $statut === 'approuve_chef';
+                ?>
 
                 <!-- Étape 1 : Déclaration -->
                 <div class="step done">
@@ -370,65 +411,59 @@ $statut   = $absence['Statut_Abs'];
                     </div>
                 </div>
 
-                <!-- Étape 2 : Validation RH -->
-                <?php
-                $rhDone   = in_array($statut, ['valide_rh','approuve','rejete_rh','rejete']);
-                $rhRejet  = $statut === 'rejete_rh';
-                $rhActive = $statut === 'en_attente';
-                ?>
-                <div class="step <?= $rhDone ? ($rhRejet ? 'reject' : 'done') : ($rhActive ? 'active' : '') ?>">
-                    <div class="step-dot <?= $rhDone ? ($rhRejet ? 'reject' : 'done') : ($rhActive ? 'active' : 'wait') ?>">
-                        <i class="fas <?= $rhRejet ? 'fa-times' : ($rhDone ? 'fa-check' : 'fa-clock') ?>"></i>
-                    </div>
-                    <div class="step-body">
-                        <div class="step-title">Validation RH</div>
-                        <div class="step-sub">
-                            <?php if ($rhDone && $absence['DateValidationRH_Abs']): ?>
-                            <?= date('d/m/Y', strtotime($absence['DateValidationRH_Abs'])) ?>
-                            <?php if ($absence['NomValidRH']): ?>
-                            — <?= esc($absence['PrenomValidRH'] . ' ' . $absence['NomValidRH']) ?>
-                            <?php endif; ?>
-                            <?php elseif ($rhActive): ?>
-                            En attente de traitement
-                            <?php else: ?>
-                            En attente
-                            <?php endif; ?>
-                        </div>
-                        <?php if ($absence['CommentaireRH_Abs']): ?>
-                        <div class="step-comment">
-                            <i class="fas fa-comment-dots me-1"></i><?= esc($absence['CommentaireRH_Abs']) ?>
-                        </div>
-                        <?php endif; ?>
-                    </div>
-                </div>
-
-                <!-- Étape 3 : Approbation Chef -->
-                <?php
-                $chefDone   = in_array($statut, ['approuve','rejete']);
-                $chefRejet  = $statut === 'rejete';
-                $chefActive = $statut === 'valide_rh';
-                ?>
-                <div class="step <?= $chefDone ? ($chefRejet ? 'reject' : 'done') : ($chefActive ? 'active' : '') ?>">
-                    <div class="step-dot <?= $chefDone ? ($chefRejet ? 'reject' : 'done') : ($chefActive ? 'active' : 'wait') ?>">
+                <!-- Étape 2 : Chef de Direction -->
+                <div class="step <?= $chefRejet ? 'reject' : ($chefDone ? 'done' : ($chefActive ? 'active' : '')) ?>">
+                    <div class="step-dot <?= $chefRejet ? 'reject' : ($chefDone ? 'done' : ($chefActive ? 'active' : 'wait')) ?>">
                         <i class="fas <?= $chefRejet ? 'fa-times' : ($chefDone ? 'fa-check' : 'fa-clock') ?>"></i>
                     </div>
                     <div class="step-body">
                         <div class="step-title">Approbation Chef de Direction</div>
                         <div class="step-sub">
                             <?php if ($chefDone && $absence['DateDecisionDir_Abs']): ?>
-                            <?= date('d/m/Y', strtotime($absence['DateDecisionDir_Abs'])) ?>
-                            <?php if ($absence['NomValidDir']): ?>
-                            — <?= esc($absence['PrenomValidDir'] . ' ' . $absence['NomValidDir']) ?>
-                            <?php endif; ?>
+                                <?= date('d/m/Y', strtotime($absence['DateDecisionDir_Abs'])) ?>
+                                <?php if ($absence['NomValidDir']): ?>
+                                — <?= esc($absence['PrenomValidDir'] . ' ' . $absence['NomValidDir']) ?>
+                                <?php endif; ?>
                             <?php elseif ($chefActive): ?>
-                            En attente de votre Chef de Direction
+                                En attente de votre Chef de Direction
+                            <?php elseif ($statut === 'expire'): ?>
+                                Demande expirée avant traitement
                             <?php else: ?>
-                            En attente
+                                En attente
                             <?php endif; ?>
                         </div>
                         <?php if ($absence['CommentaireDir_Abs']): ?>
                         <div class="step-comment">
                             <i class="fas fa-comment-dots me-1"></i><?= esc($absence['CommentaireDir_Abs']) ?>
+                        </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+
+                <!-- Étape 3 : RH -->
+                <div class="step <?= $rhRejet ? 'reject' : ($rhDone ? 'done' : ($rhActive ? 'active' : '')) ?>">
+                    <div class="step-dot <?= $rhRejet ? 'reject' : ($rhDone ? 'done' : ($rhActive ? 'active' : 'wait')) ?>">
+                        <i class="fas <?= $rhRejet ? 'fa-times' : ($rhDone ? 'fa-check' : 'fa-clock') ?>"></i>
+                    </div>
+                    <div class="step-body">
+                        <div class="step-title">Validation finale RH</div>
+                        <div class="step-sub">
+                            <?php if ($rhDone && $absence['DateValidationRH_Abs']): ?>
+                                <?= date('d/m/Y', strtotime($absence['DateValidationRH_Abs'])) ?>
+                                <?php if ($absence['NomValidRH']): ?>
+                                — <?= esc($absence['PrenomValidRH'] . ' ' . $absence['NomValidRH']) ?>
+                                <?php endif; ?>
+                            <?php elseif ($rhActive): ?>
+                                En attente de validation RH
+                            <?php elseif ($statut === 'expire'): ?>
+                                Non atteinte
+                            <?php else: ?>
+                                En attente
+                            <?php endif; ?>
+                        </div>
+                        <?php if ($absence['CommentaireRH_Abs']): ?>
+                        <div class="step-comment">
+                            <i class="fas fa-comment-dots me-1"></i><?= esc($absence['CommentaireRH_Abs']) ?>
                         </div>
                         <?php endif; ?>
                     </div>

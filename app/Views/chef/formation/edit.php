@@ -3,23 +3,24 @@
 <?= $this->section('css') ?>
 <style>
     :root {
-        --c-orange:        #F5A623;
-        --c-orange-pale:   rgba(245,166,35,0.10);
-        --c-orange-border: rgba(245,166,35,0.25);
-        --c-green-pale:    rgba(74,103,65,0.15);
-        --c-green-border:  rgba(74,103,65,0.35);
-        --c-red-pale:      rgba(224,82,82,0.10);
-        --c-red-border:    rgba(224,82,82,0.25);
-        --c-surface:       #1a1a1a;
-        --c-border:        rgba(255,255,255,0.06);
-        --c-text:          rgba(255,255,255,0.85);
-        --c-muted:         rgba(255,255,255,0.35);
-        --c-soft:          rgba(255,255,255,0.55);
+        --c-primary:        #3A7BD5;
+        --c-primary-pale:   rgba(58,123,213,0.10);
+        --c-primary-border: rgba(58,123,213,0.25);
+        --c-accent:         #5B9BF0;
+        --c-purple-pale:    rgba(139,92,246,0.10);
+        --c-purple-border:  rgba(139,92,246,0.25);
+        --c-red-pale:       rgba(224,82,82,0.10);
+        --c-red-border:     rgba(224,82,82,0.25);
+        --c-surface:        #1a1a1a;
+        --c-border:         rgba(255,255,255,0.06);
+        --c-text:           rgba(255,255,255,0.85);
+        --c-muted:          rgba(255,255,255,0.35);
+        --c-soft:           rgba(255,255,255,0.55);
     }
 
     .form-card {
         background: var(--c-surface); border: 1px solid var(--c-border);
-        border-radius: 14px; overflow: hidden; max-width: 780px; margin: 0 auto;
+        border-radius: 14px; overflow: hidden; max-width: 860px; margin: 0 auto;
     }
 
     .form-card-header {
@@ -31,17 +32,17 @@
 
     .form-card-icon {
         width: 38px; height: 38px; border-radius: 10px;
-        background: var(--c-orange-pale); border: 1px solid var(--c-orange-border);
+        background: var(--c-primary-pale); border: 1px solid var(--c-primary-border);
         display: flex; align-items: center; justify-content: center;
-        color: var(--c-orange); font-size: 0.9rem; flex-shrink: 0;
+        color: var(--c-accent); font-size: 0.9rem; flex-shrink: 0;
     }
 
     .form-card-title    { color: #fff; font-size: 0.92rem; font-weight: 700; margin: 0; }
     .form-card-subtitle { color: var(--c-muted); font-size: 0.75rem; margin: 2px 0 0; }
 
     .badge-id {
-        background: var(--c-orange-pale); border: 1px solid var(--c-orange-border);
-        color: var(--c-orange); font-size: 0.7rem; font-weight: 700;
+        background: var(--c-primary-pale); border: 1px solid var(--c-primary-border);
+        color: var(--c-accent); font-size: 0.7rem; font-weight: 700;
         padding: 3px 10px; border-radius: 20px;
     }
 
@@ -51,14 +52,16 @@
         border: 1px solid var(--c-border); border-radius: 10px;
         margin-bottom: 18px; overflow: hidden;
     }
+    .form-section:last-child { margin-bottom: 0; }
 
     .form-section-head {
-        padding: 10px 16px; background: rgba(245,166,35,0.04);
-        border-bottom: 1px solid var(--c-border);
+        padding: 10px 16px; border-bottom: 1px solid var(--c-border);
         display: flex; align-items: center; gap: 8px;
-        color: var(--c-orange); font-size: 0.78rem; font-weight: 700;
+        font-size: 0.78rem; font-weight: 700;
         text-transform: uppercase; letter-spacing: 0.6px;
     }
+    .form-section-head.blue   { color: var(--c-accent); background: rgba(58,123,213,0.04); }
+    .form-section-head.purple { color: #8b5cf6; background: rgba(139,92,246,0.04); }
 
     .form-section-body { padding: 18px 16px; }
 
@@ -72,8 +75,7 @@
         font-size: 0.72rem; font-weight: 600; color: var(--c-soft);
         text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;
     }
-
-    .form-label .req { color: var(--c-orange); margin-left: 2px; }
+    .form-label .req { color: var(--c-accent); margin-left: 2px; }
 
     .form-control {
         background: #111; border: 1px solid var(--c-border);
@@ -81,20 +83,37 @@
         padding: 9px 12px; outline: none; transition: border-color 0.2s;
         font-family: 'Segoe UI', sans-serif; width: 100%;
     }
-
-    .form-control:focus      { border-color: var(--c-orange-border); }
+    .form-control:focus       { border-color: var(--c-primary-border); }
     .form-control::placeholder { color: var(--c-muted); }
-    .form-control option     { background: #1a1a1a; }
-    textarea.form-control    { resize: vertical; min-height: 90px; }
+    .form-control option      { background: #1a1a1a; }
+    textarea.form-control     { resize: vertical; min-height: 80px; }
 
     .field-error {
         font-size: 0.7rem; color: #ff8080; margin-top: 4px;
         display: flex; align-items: center; gap: 4px;
     }
-
     .field-hint { font-size: 0.7rem; color: var(--c-muted); margin-top: 4px; }
 
-    /* Capacité warning */
+    /* ===== COMPÉTENCES ===== */
+    .cmp-grid {
+        display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 8px;
+    }
+    .cmp-item {
+        background: #111; border: 1px solid var(--c-border);
+        border-radius: 8px; padding: 9px 12px;
+        display: flex; align-items: center; gap: 8px;
+        cursor: pointer; transition: all 0.15s;
+    }
+    .cmp-item:hover    { border-color: var(--c-purple-border); }
+    .cmp-item.selected { background: var(--c-purple-pale); border-color: var(--c-purple-border); }
+    .cmp-item input[type="checkbox"] {
+        accent-color: #8b5cf6; width: 14px; height: 14px; flex-shrink: 0;
+    }
+    .cmp-item-label { font-size: 0.78rem; color: var(--c-text); font-weight: 500; }
+    .cmp-item.selected .cmp-item-label { color: #8b5cf6; }
+
+    /* ===== CAPACITÉ ===== */
     .cap-warning {
         background: rgba(255,193,7,0.08); border: 1px solid rgba(255,193,7,0.25);
         border-radius: 8px; padding: 10px 14px; margin-bottom: 14px;
@@ -103,50 +122,43 @@
     }
 
     .cap-options { display: flex; gap: 10px; margin-bottom: 12px; }
-
     .cap-opt {
         flex: 1; border: 1px solid var(--c-border); border-radius: 8px;
         padding: 10px 14px; cursor: pointer; transition: all 0.2s;
         display: flex; align-items: center; gap: 10px; background: #111;
     }
-
-    .cap-opt:hover  { border-color: var(--c-orange-border); }
-    .cap-opt.selected { border-color: var(--c-orange-border); background: var(--c-orange-pale); }
+    .cap-opt:hover    { border-color: var(--c-primary-border); }
+    .cap-opt.selected { border-color: var(--c-primary-border); background: var(--c-primary-pale); }
     .cap-opt input[type="radio"] { display: none; }
-
     .cap-opt-icon {
         width: 30px; height: 30px; border-radius: 7px;
-        background: var(--c-orange-pale); border: 1px solid var(--c-orange-border);
+        background: var(--c-primary-pale); border: 1px solid var(--c-primary-border);
         display: flex; align-items: center; justify-content: center;
-        color: var(--c-orange); font-size: 0.75rem; flex-shrink: 0;
+        color: var(--c-accent); font-size: 0.75rem; flex-shrink: 0;
     }
-
     .cap-opt-label { font-size: 0.8rem; color: var(--c-soft); font-weight: 600; }
     .cap-opt-desc  { font-size: 0.68rem; color: var(--c-muted); margin-top: 1px; }
-    .cap-opt.selected .cap-opt-label { color: var(--c-orange); }
-
+    .cap-opt.selected .cap-opt-label { color: var(--c-accent); }
     .cap-detail         { display: none; }
     .cap-detail.visible { display: block; }
 
-    /* Boutons */
-    .btn-orange {
-        background: linear-gradient(135deg, var(--c-orange), #d4891a);
-        border: none; color: #111; font-weight: 700; border-radius: 8px;
+    /* ===== BOUTONS ===== */
+    .btn-primary {
+        background: linear-gradient(135deg, var(--c-primary), #2d62b8);
+        border: none; color: #fff; font-weight: 700; border-radius: 8px;
         padding: 10px 22px; font-size: 0.82rem; cursor: pointer;
-        transition: all 0.2s; display: inline-flex; align-items: center; gap: 7px;
-        text-decoration: none;
+        transition: all 0.2s; display: inline-flex; align-items: center;
+        gap: 7px; text-decoration: none;
     }
-
-    .btn-orange:hover { transform: translateY(-1px); box-shadow: 0 5px 18px rgba(245,166,35,0.3); color: #111; }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 5px 18px rgba(58,123,213,0.3); color: #fff; }
 
     .btn-ghost {
         background: transparent; border: 1px solid var(--c-border);
         color: var(--c-soft); font-weight: 600; border-radius: 8px;
         padding: 10px 22px; font-size: 0.82rem; cursor: pointer;
-        transition: all 0.2s; display: inline-flex; align-items: center; gap: 7px;
-        text-decoration: none;
+        transition: all 0.2s; display: inline-flex; align-items: center;
+        gap: 7px; text-decoration: none;
     }
-
     .btn-ghost:hover { background: rgba(255,255,255,0.04); color: var(--c-text); }
 
     .form-footer {
@@ -159,8 +171,8 @@
         border-radius: 10px; padding: 11px 16px; color: #ff8080;
         font-size: 0.82rem; margin-bottom: 18px;
     }
-
     .alert-error-dark ul { margin: 6px 0 0 16px; padding: 0; }
+    .alert-error-dark li { margin-bottom: 3px; }
 
     @media (max-width: 640px) {
         .form-row-2 { grid-template-columns: 1fr; }
@@ -171,20 +183,27 @@
 
 <?= $this->section('content') ?>
 
-<?php $f = $formation; ?>
+<?php
+$f = $formation;
+
+$cmpPrevusIds = array_column(
+    array_filter($competencesObtenues, fn($c) => $c['id_Emp'] === null),
+    'id_Cmp'
+);
+?>
 
 <div class="page-header">
     <div>
-        <h1><i class="fas fa-pen me-2" style="color:#F5A623;"></i>Modifier la formation</h1>
-        <p><?= esc(mb_substr($f['Description_Frm'], 0, 60)) ?><?= mb_strlen($f['Description_Frm']) > 60 ? '…' : '' ?></p>
+        <h1><i class="fas fa-pen me-2" style="color:var(--c-accent);"></i>Modifier la formation</h1>
+        <p><?= esc(mb_strlen($f['Titre_Frm']) > 60 ? mb_substr($f['Titre_Frm'], 0, 60).'…' : $f['Titre_Frm']) ?></p>
     </div>
-    <a href="<?= base_url('formation/show/' . $f['id_Frm']) ?>" class="btn-ghost">
+    <a href="<?= base_url('formation/show/'.$f['id_Frm']) ?>" class="btn-ghost">
         <i class="fas fa-arrow-left"></i> Retour
     </a>
 </div>
 
 <?php if (session()->getFlashdata('errors') || session()->getFlashdata('error')): ?>
-<div class="alert-error-dark" style="max-width:780px;margin:0 auto 18px;">
+<div class="alert-error-dark" style="max-width:860px;margin:0 auto 18px;">
     <div style="display:flex;align-items:center;gap:8px;font-weight:700;">
         <i class="fas fa-exclamation-triangle"></i> Erreurs de saisie
     </div>
@@ -203,50 +222,55 @@
             <div class="form-card-icon"><i class="fas fa-pen"></i></div>
             <div>
                 <p class="form-card-title">Modifier la formation</p>
-                <p class="form-card-subtitle">Les champs marqués <span style="color:var(--c-orange);">*</span> sont obligatoires</p>
+                <p class="form-card-subtitle">Les champs <span style="color:var(--c-accent);">*</span> sont obligatoires</p>
             </div>
         </div>
         <span class="badge-id"># <?= (int)$f['id_Frm'] ?></span>
     </div>
 
-    <form action="<?= base_url('formation/update/' . $f['id_Frm']) ?>" method="POST">
+    <form action="<?= base_url('formation/update/'.$f['id_Frm']) ?>" method="POST" id="form-edit">
         <?= csrf_field() ?>
 
         <div class="form-card-body">
 
-            <!-- Infos générales -->
+            <!-- 1 — INFORMATIONS GÉNÉRALES -->
             <div class="form-section">
-                <div class="form-section-head">
+                <div class="form-section-head blue">
                     <i class="fas fa-info-circle"></i> Informations générales
                 </div>
                 <div class="form-section-body">
                     <div class="form-row">
                         <div class="form-group">
+                            <label class="form-label">Titre <span class="req">*</span></label>
+                            <input type="text" name="Titre_Frm" class="form-control"
+                                   value="<?= old('Titre_Frm', esc($f['Titre_Frm'])) ?>">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
                             <label class="form-label">Description <span class="req">*</span></label>
                             <textarea name="Description_Frm" class="form-control"
-                                      rows="3" placeholder="Description de la formation..."><?= old('Description_Frm', esc($f['Description_Frm'])) ?></textarea>
+                                      rows="3"><?= old('Description_Frm', esc($f['Description_Frm'])) ?></textarea>
                         </div>
                     </div>
                     <div class="form-row form-row-2">
                         <div class="form-group">
                             <label class="form-label">Lieu <span class="req">*</span></label>
                             <input type="text" name="Lieu_Frm" class="form-control"
-                                   placeholder="Lieu de la formation"
                                    value="<?= old('Lieu_Frm', esc($f['Lieu_Frm'])) ?>">
                         </div>
                         <div class="form-group">
                             <label class="form-label">Formateur <span class="req">*</span></label>
                             <input type="text" name="Formateur_Frm" class="form-control"
-                                   placeholder="Nom du formateur"
                                    value="<?= old('Formateur_Frm', esc($f['Formateur_Frm'])) ?>">
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Dates -->
+            <!-- 2 — DATES -->
             <div class="form-section">
-                <div class="form-section-head">
+                <div class="form-section-head blue">
                     <i class="fas fa-calendar-alt"></i> Dates
                 </div>
                 <div class="form-section-body">
@@ -267,15 +291,59 @@
                         </div>
                     </div>
                     <div id="duree-info" class="field-hint">
-                        <i class="fas fa-clock" style="color:var(--c-orange);"></i>
-                        Durée : <strong id="duree-val" style="color:var(--c-orange);"></strong>
+                        <i class="fas fa-clock" style="color:var(--c-accent);"></i>
+                        Durée : <strong id="duree-val" style="color:var(--c-accent);"></strong>
                     </div>
                 </div>
             </div>
 
-            <!-- Capacité -->
+            <!-- 3 — COMPÉTENCES -->
             <div class="form-section">
-                <div class="form-section-head">
+                <div class="form-section-head purple">
+                    <i class="fas fa-award"></i> Compétences à acquérir
+                    <span style="font-size:0.68rem;font-weight:400;color:rgba(139,92,246,0.6);margin-left:4px;">
+                        — Vous les confirmerez après la formation
+                    </span>
+                </div>
+                <div class="form-section-body">
+                    <div class="field-hint" style="margin-bottom:10px;">
+                        Modifiez les compétences que cette formation permet d'acquérir.
+                        <?php if ($f['Statut_Frm'] === 'terminee'): ?>
+                        <span style="color:#ff8080;">
+                            <i class="fas fa-lock"></i>
+                            Formation terminée — les compétences déjà confirmées ne seront pas affectées.
+                        </span>
+                        <?php endif; ?>
+                    </div>
+                    <div class="cmp-grid">
+                        <?php foreach ($competences as $cmp):
+                            $checked = in_array($cmp['id_Cmp'], old('competences', $cmpPrevusIds));
+                        ?>
+                        <label class="cmp-item <?= $checked ? 'selected' : '' ?>"
+                               id="cmp-item-<?= (int)$cmp['id_Cmp'] ?>"
+                               onclick="toggleCmp(this)">
+                            <input type="checkbox"
+                                   name="competences[]"
+                                   value="<?= (int)$cmp['id_Cmp'] ?>"
+                                   <?= $checked ? 'checked' : '' ?>>
+                            <span class="cmp-item-label">
+                                <i class="fas fa-star" style="font-size:0.65rem;margin-right:4px;"></i>
+                                <?= esc($cmp['Libelle_Cmp']) ?>
+                            </span>
+                        </label>
+                        <?php endforeach; ?>
+                    </div>
+                    <div class="field-hint" style="margin-top:8px;">
+                        <strong id="cmp-count" style="color:#8b5cf6;">
+                            <?= count($cmpPrevusIds) ?>
+                        </strong> compétence(s) sélectionnée(s)
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4 — CAPACITÉ -->
+            <div class="form-section">
+                <div class="form-section-head blue">
                     <i class="fas fa-users"></i> Capacité
                 </div>
                 <div class="form-section-body">
@@ -303,7 +371,7 @@
                             <input type="radio" name="option_capacite" value="tous">
                             <div class="cap-opt-icon"><i class="fas fa-building"></i></div>
                             <div>
-                                <div class="cap-opt-label">Toute une direction</div>
+                                <div class="cap-opt-label">Par direction</div>
                                 <div class="cap-opt-desc">Capacité = nb d'employés</div>
                             </div>
                         </label>
@@ -317,7 +385,9 @@
                                        min="<?= max(1, (int)$formation['nb_valides']) ?>"
                                        value="<?= old('Capacite_Frm', $f['Capacite_Frm']) ?>">
                                 <?php if ($formation['nb_valides'] > 0): ?>
-                                <span class="field-hint">Minimum : <?= (int)$formation['nb_valides'] ?> (participants confirmés)</span>
+                                <span class="field-hint">
+                                    Minimum : <?= (int)$formation['nb_valides'] ?> (participants confirmés)
+                                </span>
                                 <?php endif; ?>
                             </div>
                         </div>
@@ -348,16 +418,17 @@
                             </div>
                         </div>
                     </div>
+
                 </div>
             </div>
 
         </div><!-- /.form-card-body -->
 
         <div class="form-footer">
-            <a href="<?= base_url('formation/show/' . $f['id_Frm']) ?>" class="btn-ghost">
+            <a href="<?= base_url('formation/show/'.$f['id_Frm']) ?>" class="btn-ghost">
                 <i class="fas fa-times"></i> Annuler
             </a>
-            <button type="submit" class="btn-orange">
+            <button type="submit" class="btn-primary">
                 <i class="fas fa-save"></i> Enregistrer les modifications
             </button>
         </div>
@@ -371,33 +442,7 @@
 <script>
 (function () {
 
-    window.selectCap = function (type) {
-        ['manuel','tous'].forEach(function (t) {
-            document.getElementById('cap-opt-' + t).classList.toggle('selected', t === type);
-            document.getElementById('cap-detail-' + t).classList.toggle('visible', t === type);
-        });
-        if (type === 'manuel') {
-            document.getElementById('sel-direction').value = '';
-            updateDirCount();
-        } else {
-            var inp = document.querySelector('input[name="Capacite_Frm"]');
-            if (inp) inp.value = '';
-        }
-    };
-
-    window.updateDirCount = function () {
-        var sel = document.getElementById('sel-direction');
-        var disp = document.getElementById('dir-count-display');
-        if (!sel || !disp) return;
-        var opt = sel.options[sel.selectedIndex];
-        if (sel.value && opt) {
-            var n = opt.getAttribute('data-count');
-            disp.innerHTML = '<span style="color:var(--c-orange);font-weight:700;font-size:1rem;">' + n + '</span>&nbsp;<span style="color:var(--c-muted);">places</span>';
-        } else {
-            disp.textContent = 'Sélectionnez une direction';
-        }
-    };
-
+    // ===== DURÉE =====
     var debEl  = document.getElementById('date-debut');
     var finEl  = document.getElementById('date-fin');
     var errEl  = document.getElementById('date-error');
@@ -421,7 +466,52 @@
     finEl.addEventListener('change', calcDuree);
     calcDuree();
 
-    document.querySelector('form').addEventListener('submit', function (e) {
+    // ===== CAPACITÉ =====
+    window.selectCap = function (type) {
+        ['manuel', 'tous'].forEach(function (t) {
+            document.getElementById('cap-opt-' + t).classList.toggle('selected', t === type);
+            document.getElementById('cap-detail-' + t).classList.toggle('visible', t === type);
+        });
+        if (type === 'manuel') {
+            var sel = document.getElementById('sel-direction');
+            if (sel) sel.value = '';
+            updateDirCount();
+        } else {
+            var inp = document.querySelector('input[name="Capacite_Frm"]');
+            if (inp) inp.value = '';
+        }
+    };
+
+    window.updateDirCount = function () {
+        var sel  = document.getElementById('sel-direction');
+        var disp = document.getElementById('dir-count-display');
+        if (!sel || !disp) return;
+        var opt = sel.options[sel.selectedIndex];
+        if (sel.value && opt) {
+            var n = opt.getAttribute('data-count');
+            disp.innerHTML = '<span style="color:var(--c-accent);font-weight:700;font-size:1rem;">'
+                + n + '</span>&nbsp;<span style="color:var(--c-muted);">places</span>';
+        } else {
+            disp.textContent = 'Sélectionnez une direction';
+        }
+    };
+
+    // ===== COMPÉTENCES =====
+    window.toggleCmp = function (label) {
+        var cb = label.querySelector('input[type="checkbox"]');
+        if (!cb) return;
+        label.classList.toggle('selected', cb.checked);
+        updateCmpCount();
+    };
+
+    function updateCmpCount() {
+        var n  = document.querySelectorAll('.cmp-item input:checked').length;
+        var el = document.getElementById('cmp-count');
+        if (el) el.textContent = n;
+    }
+
+    // ===== SUBMIT GUARD =====
+    document.getElementById('form-edit').addEventListener('submit', function (e) {
         if (finEl.value && debEl.value && new Date(finEl.value) < new Date(debEl.value)) {
             e.preventDefault();
             errEl.style.display = 'flex';
